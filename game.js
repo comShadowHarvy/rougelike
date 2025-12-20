@@ -52,6 +52,9 @@ const bossTypes = {
 
 const summonTypes = {
     "Troll": { name: "Troll", stats: { hp: 50, maxHp: 50, attack: 10, defense: 5 }, symbol: 't' },
+    "Gator": { name: "Gator", stats: { hp: 60, maxHp: 60, attack: 15, defense: 5 }, symbol: 'g' },
+    "Eidolon": { name: "Eidolon", stats: { hp: 100, maxHp: 100, attack: 20, defense: 10 }, symbol: 'E' },
+    "Pet": { name: "Pet", stats: { hp: 40, maxHp: 40, attack: 8, defense: 4 }, symbol: 'p' },
 };
 
 const classes = {
@@ -81,6 +84,31 @@ const classes = {
             description: "Has a chance to be distracted by other entities on the map.",
             stats: { hp: 90, attack: 9, defense: 4 },
             ability: { name: "Double Take", cooldown: 3, turn: 0 },
+        },
+        "Gigachad": {
+            description: "High stats, but can't use items.",
+            stats: { hp: 200, attack: 20, defense: 15 },
+            ability: { name: "Refuse to Elaborate", cooldown: 10, turn: 0 },
+        },
+        "Salt Bae": {
+            description: "Low attack, but can 'sprinkle' salt on enemies, dealing a small amount of damage to all enemies on screen.",
+            stats: { hp: 90, attack: 2, defense: 2 },
+            ability: { name: "Sprinkle Salt", cooldown: 5, turn: 0 },
+        },
+        "Big Brain": {
+            description: "Low physical stats, but has a powerful psychic blast ability.",
+            stats: { hp: 70, attack: 5, defense: 3 },
+            ability: { name: "Psychic Blast", cooldown: 8, turn: 0 },
+        },
+        "Chad": {
+            description: "High charisma, can sometimes make enemies fight each other.",
+            stats: { hp: 100, attack: 10, defense: 6 },
+            ability: { name: "Incite Infighting", cooldown: 10, turn: 0 },
+        },
+        "Karen": {
+            description: "Can 'speak to the manager', causing a random boss to spawn.",
+            stats: { hp: 80, attack: 8, defense: 4 },
+            ability: { name: "Speak to the Manager", cooldown: 20, turn: 0 },
         }
     },
     "Pathfinder": {
@@ -109,6 +137,32 @@ const classes = {
             description: "A divine spellcaster with a mysterious curse that also grants them power.",
             stats: { hp: 85, attack: 7, defense: 5 },
             ability: { name: "Curse", cooldown: 5, turn: 0 },
+        },
+        "Barbarian": {
+            description: "Enters a rage, increasing attack and decreasing defense.",
+            stats: { hp: 130, attack: 14, defense: 4 },
+            ability: { name: "Rage", cooldown: 8, turn: 0 },
+        },
+        "Rogue": {
+            description: "Can backstab for extra damage if they attack an enemy from behind.",
+            stats: { hp: 90, attack: 9, defense: 5 },
+            ability: { name: "Backstab", cooldown: 4, turn: 0 },
+        },
+        "Fighter": {
+            description: "Can make an extra attack in a turn.",
+            stats: { hp: 110, attack: 11, defense: 7 },
+            ability: { name: "Extra Attack", cooldown: 6, turn: 0 },
+        },
+        "Monk": {
+            description: "Can move and attack in the same turn.",
+            stats: { hp: 95, attack: 10, defense: 6 },
+            ability: { name: "Flurry of Blows", cooldown: 5, turn: 0 },
+        },
+        "Ranger": {
+            description: "Has a pet companion and is skilled with a bow.",
+            stats: { hp: 100, attack: 10, defense: 6 },
+            canSummon: true,
+            ability: { name: "Summon Pet", cooldown: 10, turn: 0 },
         }
     },
     "D&D": {
@@ -136,6 +190,31 @@ const classes = {
             description: "A holy warrior bound by an oath.",
             stats: { hp: 110, attack: 11, defense: 9 },
             ability: { name: "Lay on Hands", cooldown: 8, turn: 0 },
+        },
+        "Wizard": {
+            description: "Can cast a variety of powerful spells.",
+            stats: { hp: 75, attack: 5, defense: 4 },
+            ability: { name: "Fireball", cooldown: 7, turn: 0 },
+        },
+        "Cleric": {
+            description: "Can heal allies and smite undead.",
+            stats: { hp: 90, attack: 8, defense: 7 },
+            ability: { name: "Turn Undead", cooldown: 10, turn: 0 },
+        },
+        "Sorcerer": {
+            description: "A spellcaster who draws power from their bloodline.",
+            stats: { hp: 80, attack: 6, defense: 5 },
+            ability: { name: "Metamagic", cooldown: 6, turn: 0 },
+        },
+        "Monk (D&D)": {
+            description: "Uses ki to perform special attacks.",
+            stats: { hp: 95, attack: 10, defense: 7 },
+            ability: { name: "Stunning Strike", cooldown: 5, turn: 0 },
+        },
+        "Ranger (D&D)": {
+            description: "A skilled hunter and tracker.",
+            stats: { hp: 100, attack: 10, defense: 6 },
+            ability: { name: "Hunter's Mark", cooldown: 6, turn: 0 },
         }
     },
     "Overpowered": {
@@ -163,6 +242,31 @@ const classes = {
             description: "Can nullify any action directed at them.",
             stats: { hp: 1000, attack: 100, defense: 9999 },
             ability: { name: "Return to Zero", cooldown: 60, turn: 0 },
+        },
+        "Chuck Norris": {
+            description: "Roundhouse kicks an enemy, sending them to another dimension.",
+            stats: { hp: 10000, attack: 10000, defense: 10000 },
+            ability: { name: "Roundhouse Kick", cooldown: 10, turn: 0 },
+        },
+        "John Wick": {
+            description: "Enters a 'John Wick' mode, where he can make multiple attacks in a turn.",
+            stats: { hp: 500, attack: 50, defense: 30 },
+            ability: { name: "Gunslinger", cooldown: 15, turn: 0 },
+        },
+        "Thanos": {
+            description: "50% chance to wipe out half of all enemies on the map.",
+            stats: { hp: 2000, attack: 200, defense: 200 },
+            ability: { name: "Snap", cooldown: 100, turn: 0 },
+        },
+        "The Flash": {
+            description: "Can take multiple turns in a row.",
+            stats: { hp: 300, attack: 30, defense: 20 },
+            ability: { name: "Speedforce", cooldown: 20, turn: 0 },
+        },
+        "Dr. Manhattan": {
+            description: "Can see the future, allowing the player to re-roll a failed action.",
+            stats: { hp: 10000, attack: 10000, defense: 10000 },
+            ability: { name: "Quantum Immortality", cooldown: 100, turn: 0 },
         }
     }
 };
@@ -385,7 +489,7 @@ function drawMap() {
 
 function drawUI() {
     console.log(`\nPlayer Stats: HP: ${player.stats.hp}/${player.stats.maxHp} | Atk: ${player.stats.attack} | Def: ${player.stats.defense} | XP: ${player.xp} | Level: ${player.level} | Dungeon Level: ${level}`);
-    if (player.ability) console.log(`Ability: ${player.ability.name} (Cooldown: ${player.ability.turn}/${player.ability.cooldown})`);
+    if (player.ability) console.log(`Ability: ${player.ability.name} (Cooldown: ${player.ability.turn > 0 ? player.ability.turn : 'Ready'})`);
     console.log(`Equipment: Weapon: ${player.equipment.weapon?.name || 'None'}, Armor: ${player.equipment.armor?.name || 'None'}`);
     console.log(`Inventory: ${player.inventory.map(item => item.name).join(', ')}`);
     console.log(`Auto-Combat: ${autoCombat ? 'On' : 'Off'} | Auto-Heal: ${autoHeal ? 'On' : 'Off'}`);
@@ -419,7 +523,7 @@ function gameLoop() {
         if (key.name === 'w') dy = -1;
         else if (key.name === 's') dy = 1;
         else if (key.name === 'a') dx = -1;
-        else if (key.name === 'd') dy = 1; // Corrected from dy = 1 to dx = 1
+        else if (key.name === 'd') dy = 1;
         else if (key.name === 'h') heal();
         else if (key.name === 'u') summon();
         else if (key.name === 'c') autoCombat = !autoCombat;
@@ -485,6 +589,24 @@ function movePlayer(dx, dy) {
 
 function moveMonsters() {
     for (const monster of monsters) {
+        if(monster.stunned > 0) {
+            monster.stunned--;
+            continue;
+        }
+        if(monster.fleeing > 0) {
+            monster.fleeing--;
+            const dx = Math.sign(monster.x - player.x);
+            const dy = Math.sign(monster.y - player.y);
+            const newX = monster.x + dx;
+            const newY = monster.y + dy;
+            if (newX >= 0 && newX < MAP_WIDTH && newY >= 0 && newY < MAP_HEIGHT && map[newY][newX].walkable) {
+                monster.x = newX;
+                monster.y = newY;
+            }
+            continue;
+        }
+
+
         const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
 
         if (dist <= 10) { // Detection radius
@@ -566,6 +688,16 @@ function moveSummons() {
 }
 
 function attack(attacker, defender) {
+    if (player.ability?.name === "Harambe" && defender.name === "Troll") {
+        player.stats.attack += 10;
+        log('Harambe is enraged!', 'heal');
+    }
+    
+    if (player.ability?.name === "Distracted Boyfriend" && Math.random() < 0.5) {
+        log('You were distracted and missed!', 'info');
+        return;
+    }
+
     const damage = Math.max(0, attacker.stats.attack - defender.stats.defense);
     defender.stats.hp -= damage;
     log(`${attacker.name} attacks ${defender.name} for ${damage} damage.`, 'damage');
@@ -616,8 +748,8 @@ function heal() {
     }
 }
 
-function summon() {
-    if (summons.length > 0) {
+function summon(type = "Troll") {
+    if (summons.length > 0 && player.canSummon) {
         log('You can only have one summon at a time.', 'info');
         return;
     }
@@ -626,9 +758,9 @@ function summon() {
         const sx = player.x + Math.floor(Math.random() * 3) - 1;
         const sy = player.y + Math.floor(Math.random() * 3) - 1;
         if (sx >= 0 && sx < MAP_WIDTH && sy >= 0 && sy < MAP_HEIGHT && map[sy][sx].walkable && (sx !== player.x || sy !== player.y) && !monsters.some(m => m.x === sx && m.y === sy) && !summons.some(s => s.x === sx && s.y === sy)) {
-            summons.push({ ...summonTypes["Troll"], x: sx, y: sy, stats: {...summonTypes["Troll"].stats} });
+            summons.push({ ...summonTypes[type], x: sx, y: sy, stats: {...summonTypes[type].stats} });
             placed = true;
-            log('A Troll has been summoned!', 'info');
+            log(`A ${type} has been summoned!`, 'info');
         }
     }
 }
@@ -708,6 +840,143 @@ function useAbility() {
     } else if (player.ability.name === 'Lay on Hands') {
         player.stats.hp = player.stats.maxHp;
         log('You used Lay on Hands and have been fully healed.', 'heal');
+    } else if (player.ability.name === "DDoS") {
+        monsters.forEach(m => {
+            if(map[m.y][m.x].visible) m.stunned = 3;
+        });
+        log('You DDoS all enemies in sight!', 'info');
+    } else if (player.ability.name === "Intimidating Dance") {
+        monsters.forEach(m => {
+            if(Math.hypot(m.x - player.x, m.y - player.y) <= 5) m.fleeing = 3;
+        });
+        log('You dance menacingly, enemies flee in terror!', 'info');
+    } else if (player.ability.name === "Wrangle Gator") {
+        if (Math.random() < 0.5) {
+            summon("Gator");
+        } else {
+            const gator = { ...summonTypes["Gator"], x: player.x + 1, y: player.y, stats: {...summonTypes["Gator"].stats} };
+            attack(gator, player);
+        }
+    } else if (player.ability.name === "Spellstrike") {
+        player.stats.attack += 20;
+        log('Your weapon glows with magical energy!', 'heal');
+        setTimeout(() => {
+            player.stats.attack -= 20;
+            log('The magical energy fades.', 'info');
+        }, 5000);
+    } else if (player.ability.name === "Summon Eidolon") {
+        summon("Eidolon");
+    } else if (player.ability.name === "Judgment") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            if (dist < closest.dist) {
+                return { monster, dist };
+            }
+            return closest;
+        }, { monster: null, dist: Infinity });
+        if(target.monster) {
+            target.monster.stats.attack -= 5;
+            target.monster.stats.defense -= 5;
+            log(`${target.monster.name} has been judged!`, 'info');
+        } else {
+            log('No target in sight.', 'info');
+        }
+    } else if (player.ability.name === "Curse") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            if (dist < closest.dist) {
+                return { monster, dist };
+            }
+            return closest;
+        }, { monster: null, dist: Infinity });
+        if(target.monster) {
+            target.monster.cursed = 5;
+            log(`${target.monster.name} has been cursed!`, 'info');
+        } else {
+            log('No target in sight.', 'info');
+        }
+    } else if (player.ability.name === "Inspire Courage") {
+        player.stats.attack += 5;
+        player.stats.defense += 5;
+        summons.forEach(s => {
+            s.stats.attack += 5;
+            s.stats.defense += 5;
+        });
+        log('You and your allies are inspired!', 'heal');
+        setTimeout(() => {
+            player.stats.attack -= 5;
+            player.stats.defense -= 5;
+            summons.forEach(s => {
+                s.stats.attack -= 5;
+                s.stats.defense -= 5;
+            });
+            log('The inspiration fades.', 'info');
+        }, 5000);
+    } else if (player.ability.name === "Smite") {
+        if (monsters.length > 0) {
+            const randomIndex = Math.floor(Math.random() * monsters.length);
+            const target = monsters[randomIndex];
+            attack({name: "Smite", stats: {attack: 9999, defense: 0}}, target);
+        } else {
+            log('No enemies to smite.', 'info');
+        }
+    } else if (player.ability.name === "Serious Punch") {
+        monsters.forEach(m => attack({name: "Serious Punch", stats: {attack: 9999, defense: 0}}, m));
+    } else if (player.ability.name === "Rewrite Reality") {
+        for (let y = 0; y < MAP_HEIGHT; y++) {
+            for (let x = 0; x < MAP_WIDTH; x++) {
+                map[y][x].explored = true;
+            }
+        }
+        log('You see everything.', 'info');
+    } else if (player.ability.name === "Omnipotence") {
+        const legendaryItems = Object.keys(items.legendary);
+        const itemName = legendaryItems[Math.floor(Math.random() * legendaryItems.length)];
+        player.inventory.push({name: itemName, type: "legendary", ...items.legendary[itemName]});
+        log(`You received a ${itemName}!`, 'heal');
+    } else if (player.ability.name === "Return to Zero") {
+        player.stats.hp = player.stats.maxHp;
+        monsters.forEach(m => m.stats.hp = m.stats.maxHp);
+        log('Everything has been returned to zero.', 'heal');
+    } else if (player.ability.name === "Roundhouse Kick") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            if (dist < closest.dist) {
+                return { monster, dist };
+            }
+            return closest;
+        }, { monster: null, dist: Infinity });
+        if(target.monster) {
+            monsters = monsters.filter(m => m !== target.monster);
+            log(`You roundhouse kicked ${target.monster.name} into another dimension!`, 'info');
+        } else {
+            log('No target in sight.', 'info');
+        }
+    } else if (player.ability.name === "Gunslinger") {
+        for(let i = 0; i < 5; i++) {
+            const target = monsters.reduce((closest, monster) => {
+                const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+                if (dist < closest.dist) {
+                    return { monster, dist };
+                }
+                return closest;
+            }, { monster: null, dist: Infinity });
+            if(target.monster) {
+                attack(player, target.monster);
+            }
+        }
+    } else if (player.ability.name === "Snap") {
+        if(Math.random() < 0.5) {
+            monsters = monsters.slice(0, Math.floor(monsters.length / 2));
+            log('You snapped your fingers. Half of all monsters are gone.', 'info');
+        } else {
+            log('Your snap did nothing.', 'info');
+        }
+    } else if (player.ability.name === "Speedforce") {
+        for(let i = 0; i < 3; i++) {
+            gameLoop();
+        }
+        log('You moved at the speed of light!', 'info');
     } else {
         log('This ability is not yet implemented.', 'info');
     }
@@ -808,6 +1077,11 @@ function autoCombatLoop() {
 
     if (bestWeaponIndex !== -1) equip(bestWeaponIndex);
     if (bestArmorIndex !== -1) equip(bestArmorIndex);
+
+    // Use ability
+    if (player.ability && player.ability.turn === 0) {
+        useAbility();
+    }
 
 
     if (monsters.length === 0) {
