@@ -61,6 +61,9 @@ const monsterTypes = {
 const bossTypes = {
     "Ogre": { name: "Ogre", stats: { hp: 150, maxHp: 150, attack: 20, defense: 15 }, symbol: 'O', xpValue: 200, color: '\x1b[31m' }, // red
     "Dragon": { name: "Dragon", stats: { hp: 500, maxHp: 500, attack: 50, defense: 40 }, symbol: 'D', xpValue: 1000, color: '\x1b[31m\x1b[1m' }, // bold red
+    "Minotaur": { name: "Minotaur", stats: { hp: 200, maxHp: 200, attack: 25, defense: 18 }, symbol: 'M', xpValue: 300, color: '\x1b[33m' }, // yellow
+    "Lich": { name: "Lich", stats: { hp: 300, maxHp: 300, attack: 30, defense: 20 }, symbol: 'L', xpValue: 500, color: '\x1b[35m' }, // magenta
+    "Giant Spider": { name: "Giant Spider", stats: { hp: 100, maxHp: 100, attack: 15, defense: 10 }, symbol: 'S', xpValue: 150, color: '\x1b[30m' }, // black
 };
 
 
@@ -377,7 +380,18 @@ function generateMap() {
                 const cy = Math.floor(Math.random() * MAP_HEIGHT);
                 if (map[cy][cx].walkable && map[cy][cx].char === '.') {
                     map[cy][cx].char = '~'; // Chest
-                    const itemType = Math.random() < 0.33 ? 'weapons' : Math.random() < 0.66 ? 'armor' : 'potions';
+                    const itemCategory = Math.random();
+                    let itemType;
+                    if (itemCategory < 0.4) { // 40% chance for weapon
+                        itemType = 'weapons';
+                    } else if (itemCategory < 0.8) { // 40% chance for armor
+                        itemType = 'armor';
+                    } else if (itemCategory < 0.9) { // 10% chance for potion
+                        itemType = 'potions';
+                    } else { // 10% chance for scroll
+                        itemType = 'scrolls';
+                    }
+
                     const itemNames = Object.keys(items[itemType]);
                     const itemName = itemNames[Math.floor(Math.random() * itemNames.length)];
                     map[cy][cx].items.push({name: itemName, type: itemType, ...items[itemType][itemName]});
@@ -386,22 +400,6 @@ function generateMap() {
             }
         }
         
-        // Place scrolls
-        const numScrolls = Math.floor(MAP_WIDTH * MAP_HEIGHT / 400);
-        for (let i = 0; i < numScrolls; i++) {
-            let placedScroll = false;
-            while (!placedScroll) {
-                const sx = Math.floor(Math.random() * MAP_WIDTH);
-                const sy = Math.floor(Math.random() * MAP_HEIGHT);
-                if (map[sy][sx].walkable && map[sy][sx].char === '.') {
-                    map[sy][sx].char = '?'; // Scroll
-                    const itemName = Object.keys(items.scrolls)[Math.floor(Math.random() * Object.keys(items.scrolls).length)];
-                    map[sy][sx].items.push({name: itemName, type: "scrolls", ...items.scrolls[itemName]});
-                    placedScroll = true;
-                }
-            }
-        }
-
         // Place monsters
         const numMonsters = Math.floor(MAP_WIDTH * MAP_HEIGHT / 100);
         for (let i = 0; i < numMonsters; i++) {
@@ -593,12 +591,22 @@ function movePlayer(dx, dy) {
     const newX = player.x + dx;
     const newY = player.y + dy;
     
-    if (map[newY][newX].char === '~' || map[newY][newX].char === '*') {
+    if (map[newY][newX].char === '~' || map[newY][newX].char === '?') {
         const itemsOnTile = map[newY][newX].items;
         if (itemsOnTile.length > 0) {
             const item = itemsOnTile.pop();
             player.inventory.push(item);
             log(`You found a ${item.name}!`, 'heal');
+            if (itemsOnTile.length === 0) {
+                map[newY][newX].char = '.';
+            }
+        }
+    } else if (map[newY][newX].char === '*') { // Legendary chest
+        const itemsOnTile = map[newY][newX].items;
+        if (itemsOnTile.length > 0) {
+            const item = itemsOnTile.pop();
+            player.inventory.push(item);
+            log(`You found a legendary ${item.name}!`, 'heal');
             if (itemsOnTile.length === 0) {
                 map[newY][newX].char = '.';
             }
@@ -796,101 +804,222 @@ function summon(type = "Troll") {
     }
 }
 
-async function showInventory() {
+async function equip() {
     console.clear();
     console.log('Your inventory:');
     player.inventory.forEach((item, index) => {
-        console.log(`${index + 1}. ${item.name} (${item.type})`);
+        console.log(`${index + 1}. ${item.name}`);
     });
-    console.log('Equipped:');
-    console.log(`Weapon: ${player.equipment.weapon?.name || 'None'}`);
-    console.log(`Armor: ${player.equipment.armor?.name || 'None'}`);
 
-    const action = await new Promise(resolve => {
-        rl.question('Enter "e" to equip, "u" to use, or "b" to go back: ', (answer) => {
-            resolve(answer);
+    const itemIndex = await new Promise(resolve => {
+        process.stdin.once('data', (data) => {
+            resolve(parseInt(data.toString()) - 1);
         });
     });
 
-    if (action === 'e') {
-        const itemIndex = await new Promise(resolve => {
-            rl.question('Enter the number of the item to equip: ', (answer) => {
-                resolve(parseInt(answer) - 1);
-            });
-        });
-        equip(itemIndex);
-    } else if (action === 'u') {
-        const itemIndex = await new Promise(resolve => {
-            rl.question('Enter the number of the item to use: ', (answer) => {
-                resolve(parseInt(answer) - 1);
-            });
-        });
-        useItem(itemIndex);
-    }
-    gameLoop();
-}
-
-async function equip(itemIndex) {
     const item = player.inventory[itemIndex];
     if (item) {
-        if (item.type === 'weapons' || item.type === 'legendary') {
+        if (item.type === 'weapons') {
             if(player.equipment.weapon) player.inventory.push(player.equipment.weapon);
             player.equipment.weapon = item;
-            player.stats.attack = classes[player.description.split(" ")[0]][player.description].stats.attack + (item.attack || 0);
+            player.stats.attack = classes[player.description.split(" ")[0]][player.description].stats.attack + item.attack;
         } else if (item.type === 'armor') {
             if(player.equipment.armor) player.inventory.push(player.equipment.armor);
             player.equipment.armor = item;
-            player.stats.defense = classes[player.description.split(" ")[0]][player.description].stats.defense + (item.defense || 0);
+            player.stats.defense = classes[player.description.split(" ")[0]][player.description].stats.defense + item.defense;
         }
         player.inventory.splice(itemIndex, 1);
         log(`You equipped the ${item.name}.`, 'info');
     }
 }
 
-function useItem(itemIndex) {
-    const item = player.inventory[itemIndex];
-    if (item) {
-        if (item.type === 'potions') {
-            if (item.effect === 'heal') {
-                player.stats.hp = Math.min(player.stats.maxHp, player.stats.hp + item.value);
-                log(`You used a ${item.name} and healed for ${item.value} HP.`, 'heal');
-            } else if (item.effect === 'strength_buff') {
-                player.stats.attack += item.value;
-                log(`You used a ${item.name} and gained ${item.value} attack.`, 'heal');
-                setTimeout(() => {
-                    player.stats.attack -= item.value;
-                    log(`The effect of ${item.name} wore off.`, 'info');
-                }, item.duration * 1000); // Duration in ms
+function useAbility() {
+    if (!player.ability) {
+        log('Your class has no ability.', 'info');
+        return;
+    }
+    if (player.ability.turn > 0) {
+        log(`Your ability is on cooldown for ${player.ability.turn} more turns.`, 'info');
+        return;
+    }
+
+    player.ability.turn = player.ability.cooldown;
+
+    if (player.ability.name === 'Eldritch Blast') {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            if (dist < closest.dist) {
+                return { monster, dist };
             }
-            player.inventory.splice(itemIndex, 1);
-        } else if (item.type === 'scrolls') {
-            if (item.effect === 'teleport') {
-                let placed = false;
-                while (!placed) {
-                    const tx = Math.floor(Math.random() * MAP_WIDTH);
-                    const ty = Math.floor(Math.random() * MAP_HEIGHT);
-                    if (map[ty][tx].walkable) {
-                        player.x = tx;
-                        player.y = ty;
-                        placed = true;
-                    }
-                }
-                log('You teleported to a new location!', 'info');
-            } else if (item.effect === 'monster_stun') {
-                monsters.forEach(m => {
-                    if(map[m.y][m.x].visible) m.stunned = 5;
-                });
-                log('All monsters in sight are stunned!', 'info');
-            } else if (item.effect === 'reveal_map') {
-                for (let y = 0; y < MAP_HEIGHT; y++) {
-                    for (let x = 0; x < MAP_WIDTH; x++) {
-                        map[y][x].explored = true;
-                    }
-                }
-                log('The map has been revealed!', 'info');
-            }
-            player.inventory.splice(itemIndex, 1);
+            return closest;
+        }, { monster: null, dist: Infinity });
+        if(target.monster) {
+            attack({name: "Eldritch Blast", stats: {attack: 30, defense: 0}}, target.monster);
+        } else {
+            log('No target in sight.', 'info');
         }
+    } else if (player.ability.name === 'Throw Bomb') {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            if (dist < closest.dist) {
+                return { monster, dist };
+            }
+            return closest;
+        }, { monster: null, dist: Infinity });
+        if(target.monster) {
+            monsters.forEach(monster => {
+                const dist = Math.hypot(monster.x - target.monster.x, monster.y - target.monster.y);
+                if (dist <= 3) {
+                    attack({name: "Bomb", stats: {attack: 20, defense: 0}}, monster);
+                }
+            });
+        } else {
+            log('No target in sight.', 'info');
+        }
+    } else if (player.ability.name === 'Lay on Hands') {
+        player.stats.hp = player.stats.maxHp;
+        log('You used Lay on Hands and have been fully healed.', 'heal');
+    } else if (player.ability.name === "DDoS") {
+        monsters.forEach(m => {
+            if(map[m.y][m.x].visible) m.stunned = 3;
+        });
+        log('You DDoS all enemies in sight!', 'info');
+    } else if (player.ability.name === "Intimidating Dance") {
+        monsters.forEach(m => {
+            if(Math.hypot(m.x - player.x, m.y - player.y) <= 5) m.fleeing = 3;
+        });
+        log('You dance menacingly, enemies flee in terror!', 'info');
+    } else if (player.ability.name === "Wrangle Gator") {
+        if (Math.random() < 0.5) {
+            summon("Gator");
+        } else {
+            const gator = { ...summonTypes["Gator"], x: player.x + 1, y: player.y, stats: {...summonTypes["Gator"].stats} };
+            attack(gator, player);
+        }
+    } else if (player.ability.name === "Spellstrike") {
+        player.stats.attack += 20;
+        log('Your weapon glows with magical energy!', 'heal');
+        setTimeout(() => {
+            player.stats.attack -= 20;
+            log('The magical energy fades.', 'info');
+        }, 5000);
+    } else if (player.ability.name === "Summon Eidolon") {
+        summon("Eidolon");
+    } else if (player.ability.name === "Judgment") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            if (dist < closest.dist) {
+                return { monster, dist };
+            }
+            return closest;
+        }, { monster: null, dist: Infinity });
+        if(target.monster) {
+            target.monster.stats.attack -= 5;
+            target.monster.stats.defense -= 5;
+            log(`${target.monster.name} has been judged!`, 'info');
+        } else {
+            log('No target in sight.', 'info');
+        }
+    } else if (player.ability.name === "Curse") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            if (dist < closest.dist) {
+                return { monster, dist };
+            }
+            return closest;
+        }, { monster: null, dist: Infinity });
+        if(target.monster) {
+            target.monster.cursed = 5;
+            log(`${target.monster.name} has been cursed!`, 'info');
+        } else {
+            log('No target in sight.', 'info');
+        }
+    } else if (player.ability.name === "Inspire Courage") {
+        player.stats.attack += 5;
+        player.stats.defense += 5;
+        summons.forEach(s => {
+            s.stats.attack += 5;
+            s.stats.defense += 5;
+        });
+        log('You and your allies are inspired!', 'heal');
+        setTimeout(() => {
+            player.stats.attack -= 5;
+            player.stats.defense -= 5;
+            summons.forEach(s => {
+                s.stats.attack -= 5;
+                s.stats.defense -= 5;
+            });
+            log('The inspiration fades.', 'info');
+        }, 5000);
+    } else if (player.ability.name === "Smite") {
+        if (monsters.length > 0) {
+            const randomIndex = Math.floor(Math.random() * monsters.length);
+            const target = monsters[randomIndex];
+            attack({name: "Smite", stats: {attack: 9999, defense: 0}}, target);
+        } else {
+            log('No enemies to smite.', 'info');
+        }
+    } else if (player.ability.name === "Serious Punch") {
+        monsters.forEach(m => attack({name: "Serious Punch", stats: {attack: 9999, defense: 0}}, m));
+    } else if (player.ability.name === "Rewrite Reality") {
+        for (let y = 0; y < MAP_HEIGHT; y++) {
+            for (let x = 0; x < MAP_WIDTH; x++) {
+                map[y][x].explored = true;
+            }
+        }
+        log('You see everything.', 'info');
+    } else if (player.ability.name === "Omnipotence") {
+        const legendaryItems = Object.keys(items.legendary);
+        const itemName = legendaryItems[Math.floor(Math.random() * legendaryItems.length)];
+        player.inventory.push({name: itemName, type: "legendary", ...items.legendary[itemName]});
+        log(`You received a ${itemName}!`, 'heal');
+    } else if (player.ability.name === "Return to Zero") {
+        player.stats.hp = player.stats.maxHp;
+        monsters.forEach(m => m.stats.hp = m.stats.maxHp);
+        log('Everything has been returned to zero.', 'heal');
+    } else if (player.ability.name === "Roundhouse Kick") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            if (dist < closest.dist) {
+                return { monster, dist };
+            }
+            return closest;
+        }, { monster: null, dist: Infinity });
+        if(target.monster) {
+            monsters = monsters.filter(m => m !== target.monster);
+            log(`You roundhouse kicked ${target.monster.name} into another dimension!`, 'info');
+        } else {
+            log('No target in sight.', 'info');
+        }
+    } else if (player.ability.name === "Gunslinger") {
+        for(let i = 0; i < 5; i++) {
+            const target = monsters.reduce((closest, monster) => {
+                const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+                if (dist < closest.dist) {
+                    return { monster, dist };
+                }
+                return closest;
+            }, { monster: null, dist: Infinity });
+            if(target.monster) {
+                attack(player, target.monster);
+            }
+        }
+    } else if (player.ability.name === "Snap") {
+        if(Math.random() < 0.5) {
+            monsters = monsters.slice(0, Math.floor(monsters.length / 2));
+            log('You snapped your fingers. Half of all monsters are gone.', 'info');
+        } else {
+            log('Your snap did nothing.', 'info');
+        }
+    } else if (player.ability.name === "Speedforce") {
+        for(let i = 0; i < 3; i++) {
+            gameLoop();
+        }
+        log('You moved at the speed of light!', 'info');
+    } else if (player.ability.name === "Quantum Immortality") {
+        log('You contemplate your existence.', 'info');
+    } else {
+        log('This ability is not yet implemented.', 'info');
     }
 }
 
