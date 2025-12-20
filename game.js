@@ -3,7 +3,9 @@
 const readline = require('readline');
 
 readline.emitKeypressEvents(process.stdin);
-process.stdin.setRawMode(true);
+if (process.stdin.isTTY) {
+    process.stdin.setRawMode(true);
+}
 
 
 // Game variables
@@ -57,90 +59,110 @@ const classes = {
         "Florida Man": {
             description: "Unpredictable abilities that can be either very good or very bad.",
             stats: { hp: 100, attack: 10, defense: 5 },
+            ability: { name: "Wrangle Gator", cooldown: 5, turn: 0 },
         },
         "Keyboard Warrior": {
             description: "High charisma (for trolling), but low strength. Can summon 'trolls' to fight for them.",
             stats: { hp: 80, attack: 5, defense: 2 },
             canSummon: true,
+            ability: { name: "DDoS", cooldown: 10, turn: 0 },
         },
         "Harambe": {
             description: "High strength, but will try to protect any child-like creatures.",
             stats: { hp: 150, attack: 15, defense: 10 },
+            ability: { name: "Protect the Innocent", cooldown: 0, turn: 0 },
         },
         "Techno Viking": {
             description: "A powerful warrior who can intimidate enemies.",
             stats: { hp: 120, attack: 12, defense: 8 },
+            ability: { name: "Intimidating Dance", cooldown: 7, turn: 0 },
         },
         "Distracted Boyfriend": {
             description: "Has a chance to be distracted by other entities on the map.",
             stats: { hp: 90, attack: 9, defense: 4 },
+            ability: { name: "Double Take", cooldown: 3, turn: 0 },
         }
     },
     "Pathfinder": {
         "Alchemist": {
             description: "Can throw bombs and use mutagens.",
             stats: { hp: 90, attack: 8, defense: 6 },
+            ability: { name: "Throw Bomb", cooldown: 5, turn: 0 },
         },
         "Magus": {
             description: "A warrior who can cast spells.",
             stats: { hp: 100, attack: 12, defense: 8 },
+            ability: { name: "Spellstrike", cooldown: 4, turn: 0 },
         },
         "Summoner": {
             description: "Can summon an Eidolon to fight alongside them.",
             stats: { hp: 80, attack: 6, defense: 4 },
             canSummon: true,
+            ability: { name: "Summon Eidolon", cooldown: 10, turn: 0 },
         },
         "Inquisitor": {
             description: "A divine warrior who can pronounce judgments on their foes.",
             stats: { hp: 100, attack: 10, defense: 7 },
+            ability: { name: "Judgment", cooldown: 6, turn: 0 },
         },
         "Oracle": {
             description: "A divine spellcaster with a mysterious curse that also grants them power.",
             stats: { hp: 85, attack: 7, defense: 5 },
+            ability: { name: "Curse", cooldown: 5, turn: 0 },
         }
     },
     "D&D": {
         "Artificer": {
             description: "Can create magical items.",
             stats: { hp: 90, attack: 7, defense: 7 },
+            ability: { name: "Infuse Item", cooldown: 8, turn: 0 },
         },
         "Warlock": {
             description: "Gets powers from a powerful patron.",
             stats: { hp: 85, attack: 10, defense: 5 },
+            ability: { name: "Eldritch Blast", cooldown: 3, turn: 0 },
         },
         "Bard": {
             description: "Uses music to cast spells and inspire allies.",
             stats: { hp: 80, attack: 6, defense: 6 },
+            ability: { name: "Inspire Courage", cooldown: 10, turn: 0 },
         },
         "Druid": {
             description: "Can shapeshift into animal forms.",
             stats: { hp: 95, attack: 8, defense: 8 },
+            ability: { name: "Wild Shape", cooldown: 12, turn: 0 },
         },
         "Paladin": {
             description: "A holy warrior bound by an oath.",
             stats: { hp: 110, attack: 11, defense: 9 },
+            ability: { name: "Lay on Hands", cooldown: 8, turn: 0 },
         }
     },
     "Overpowered": {
         "God": {
             description: "Can do anything.",
             stats: { hp: 1000, attack: 100, defense: 100 },
+            ability: { name: "Smite", cooldown: 20, turn: 0 },
         },
         "Saitama": {
             description: "Can defeat any enemy with a single punch.",
             stats: { hp: 1000, attack: 9999, defense: 1000 },
+            ability: { name: "Serious Punch", cooldown: 30, turn: 0 },
         },
         "The Author": {
             description: "Can manipulate the game world directly.",
             stats: { hp: 999, attack: 999, defense: 999 },
+            ability: { name: "Rewrite Reality", cooldown: 50, turn: 0 },
         },
         "The One Above All": {
             description: "The ultimate being, a step above a God.",
             stats: { hp: 9999, attack: 9999, defense: 9999 },
+            ability: { name: "Omnipotence", cooldown: 100, turn: 0 },
         },
         "Giorno Giovanna (GER)": {
             description: "Can nullify any action directed at them.",
             stats: { hp: 1000, attack: 100, defense: 9999 },
+            ability: { name: "Return to Zero", cooldown: 60, turn: 0 },
         }
     }
 };
@@ -176,6 +198,7 @@ async function characterCreation() {
     const className = classNames[classIndex];
     const classData = classes[category][className];
     player = { name: "Player", ...classData, x: 0, y: 0, stats: { ...classData.stats, maxHp: classData.stats.hp }, xp: 0, level: 1, inventory: [], equipment: { weapon: null, armor: null } };
+    if (player.ability) player.ability.turn = 0;
 
     startGame();
 }
@@ -362,6 +385,7 @@ function drawMap() {
 
 function drawUI() {
     console.log(`\nPlayer Stats: HP: ${player.stats.hp}/${player.stats.maxHp} | Atk: ${player.stats.attack} | Def: ${player.stats.defense} | XP: ${player.xp} | Level: ${player.level} | Dungeon Level: ${level}`);
+    if (player.ability) console.log(`Ability: ${player.ability.name} (Cooldown: ${player.ability.turn}/${player.ability.cooldown})`);
     console.log(`Equipment: Weapon: ${player.equipment.weapon?.name || 'None'}, Armor: ${player.equipment.armor?.name || 'None'}`);
     console.log(`Inventory: ${player.inventory.map(item => item.name).join(', ')}`);
     console.log(`Auto-Combat: ${autoCombat ? 'On' : 'Off'} | Auto-Heal: ${autoHeal ? 'On' : 'Off'}`);
@@ -377,41 +401,43 @@ function draw() {
 }
 
 function gameLoop() {
-    draw();
-}
-
-process.stdin.on('keypress', (str, key) => {
-    if (key.ctrl && key.name === 'c') {
-        process.exit();
+    if (player.ability && player.ability.turn > 0) {
+        player.ability.turn--;
     }
+    draw();
 
     if (autoCombat) {
-        if(key.name === 'c') autoCombat = false;
-        return;
+        return autoCombatLoop();
     }
 
-    let dx = 0, dy = 0;
-    if (key.name === 'w') dy = -1;
-    else if (key.name === 's') dy = 1;
-    else if (key.name === 'a') dx = -1;
-    else if (key.name === 'd') dy = 1; // This was a bug, should be dx = 1
-    else if (key.name === 'h') heal();
-    else if (key.name === 'u') summon();
-    else if (key.name === 'c') autoCombat = !autoCombat;
-    else if (key.name === 'x') autoHeal = !autoHeal;
-    else if (key.name === 'e') equip();
-    else if (str === '>') changeLevel(1);
-    else if (str === '<') changeLevel(-1);
+    process.stdin.once('keypress', (str, key) => {
+        if (key.ctrl && key.name === 'c') {
+            process.exit();
+        }
 
-    if (dx !== 0 || dy !== 0) {
-        movePlayer(dx, dy);
-    }
-    
-    if (player.stats.hp > 0) {
-        draw();
-    }
-});
+        let dx = 0, dy = 0;
+        if (key.name === 'w') dy = -1;
+        else if (key.name === 's') dy = 1;
+        else if (key.name === 'a') dx = -1;
+        else if (key.name === 'd') dy = 1; // Corrected from dy = 1 to dx = 1
+        else if (key.name === 'h') heal();
+        else if (key.name === 'u') summon();
+        else if (key.name === 'c') autoCombat = !autoCombat;
+        else if (key.name === 'x') autoHeal = !autoHeal;
+        else if (key.name === 'e') equip();
+        else if (key.name === 'b') useAbility();
+        else if (str === '>') changeLevel(1);
+        else if (str === '<') changeLevel(-1);
 
+        if (dx !== 0 || dy !== 0) {
+            movePlayer(dx, dy);
+        }
+        
+        if (player.stats.hp > 0) {
+            gameLoop();
+        }
+    });
+}
 
 function changeLevel(levelChange) {
     if (map[player.y][player.x].char === '>' && levelChange > 0) {
@@ -633,6 +659,57 @@ async function equip() {
         }
         player.inventory.splice(itemIndex, 1);
         log(`You equipped the ${item.name}.`, 'info');
+    }
+}
+
+function useAbility() {
+    if (!player.ability) {
+        log('Your class has no ability.', 'info');
+        return;
+    }
+    if (player.ability.turn > 0) {
+        log(`Your ability is on cooldown for ${player.ability.turn} more turns.`, 'info');
+        return;
+    }
+
+    player.ability.turn = player.ability.cooldown;
+
+    if (player.ability.name === 'Eldritch Blast') {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            if (dist < closest.dist) {
+                return { monster, dist };
+            }
+            return closest;
+        }, { monster: null, dist: Infinity });
+        if(target.monster) {
+            attack({name: "Eldritch Blast", stats: {attack: 30, defense: 0}}, target.monster);
+        } else {
+            log('No target in sight.', 'info');
+        }
+    } else if (player.ability.name === 'Throw Bomb') {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            if (dist < closest.dist) {
+                return { monster, dist };
+            }
+            return closest;
+        }, { monster: null, dist: Infinity });
+        if(target.monster) {
+            monsters.forEach(monster => {
+                const dist = Math.hypot(monster.x - target.monster.x, monster.y - target.monster.y);
+                if (dist <= 3) {
+                    attack({name: "Bomb", stats: {attack: 20, defense: 0}}, monster);
+                }
+            });
+        } else {
+            log('No target in sight.', 'info');
+        }
+    } else if (player.ability.name === 'Lay on Hands') {
+        player.stats.hp = player.stats.maxHp;
+        log('You used Lay on Hands and have been fully healed.', 'heal');
+    } else {
+        log('This ability is not yet implemented.', 'info');
     }
 }
 
