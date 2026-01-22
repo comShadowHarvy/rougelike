@@ -24,7 +24,8 @@
 -   [x] Chests and loot system
 -   [x] Inventory and equipment system
 -   [x] Special abilities for all classes
--   [ ] Auto-combat uses special abilities
+-   [x] Auto-combat uses special abilities
+-   [x] Traps and Hazards
 
 ## Controls
 

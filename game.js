@@ -74,6 +74,12 @@ const summonTypes = {
     "Pet": { name: "Pet", stats: { hp: 40, maxHp: 40, attack: 8, defense: 4 }, symbol: 'p' },
 };
 
+const trapTypes = {
+    "Spike Pit": { name: "Spike Pit", damage: 10, message: "You fell into a spike pit!", symbol: '^', color: '\x1b[31m' },
+    "Poison Gas": { name: "Poison Gas", effect: "poison", damage: 5, duration: 5, message: "You triggered a poison gas trap!", symbol: ';', color: '\x1b[32m' },
+    "Teleport Trap": { name: "Teleport Trap", effect: "teleport", message: "You stepped on a teleport trap!", symbol: '@', color: '\x1b[35m' }
+};
+
 const classes = {
     "Meme": {
         "Florida Man": {
@@ -296,11 +302,18 @@ async function characterCreation() {
         console.log(`${index + 1}. ${category}`);
     });
 
-    const categoryIndex = await new Promise(resolve => {
-        process.stdin.once('data', (data) => {
-            resolve(parseInt(data.toString()) - 1);
+
+
+    let categoryIndex = -1;
+    while (categoryIndex < 0 || categoryIndex >= categories.length) {
+        categoryIndex = await new Promise(resolve => {
+            process.stdin.once('data', (data) => {
+                const val = parseInt(data.toString().trim());
+                if (!isNaN(val)) resolve(val - 1);
+                else resolve(-1);
+            });
         });
-    });
+    }
 
     const category = categories[categoryIndex];
     console.clear();
@@ -310,12 +323,17 @@ async function characterCreation() {
         console.log(`${index + 1}. ${className} - ${classes[category][className].description}`);
     });
 
-    const classIndex = await new Promise(resolve => {
-        process.stdin.once('data', (data) => {
-            resolve(parseInt(data.toString()) - 1);
+    let classIndex = -1;
+    while (classIndex < 0 || classIndex >= classNames.length) {
+        classIndex = await new Promise(resolve => {
+            process.stdin.once('data', (data) => {
+                const val = parseInt(data.toString().trim());
+                if (!isNaN(val)) resolve(val - 1);
+                else resolve(-1);
+            });
         });
-    });
-    
+    }
+
     const className = classNames[classIndex];
     const classData = classes[category][className];
     player = { name: "Player", ...classData, x: 0, y: 0, stats: { ...classData.stats, maxHp: classData.stats.hp }, xp: 0, level: 1, inventory: [], equipment: { weapon: null, armor: null } };
@@ -327,12 +345,12 @@ async function characterCreation() {
 function startGame() {
     generateMap();
     computeFov();
-    if(player.canSummon) summon();
+    if (player.canSummon) summon();
     gameLoop();
 }
 
 function generateMap() {
-    map = Array(MAP_HEIGHT).fill(0).map(() => Array(MAP_WIDTH).fill(null).map(() => ({ char: '#', walkable: false, visible: false, explored: false, items: [] })));
+    map = Array(MAP_HEIGHT).fill(0).map(() => Array(MAP_WIDTH).fill(null).map(() => ({ char: '#', walkable: false, visible: false, explored: false, items: [], trap: null })));
     monsters = [];
     corpses = [];
 
@@ -345,14 +363,14 @@ function generateMap() {
             }
         }
         const bossType = level % 15 === 0 ? "Dragon" : "Ogre";
-        const boss = { ...bossTypes[bossType], x: Math.floor(MAP_WIDTH / 2), y: Math.floor(MAP_HEIGHT / 2), stats: {...bossTypes[bossType].stats} };
+        const boss = { ...bossTypes[bossType], x: Math.floor(MAP_WIDTH / 2), y: Math.floor(MAP_HEIGHT / 2), stats: { ...bossTypes[bossType].stats } };
         monsters.push(boss);
 
         if (level % 15 === 0) {
             const cx = boss.x + 1;
             const cy = boss.y;
             map[cy][cx].char = '*'; // Legendary Chest
-            map[cy][cx].items.push({name: "Excalibur", type: "weapons", ...items.legendary["Excalibur"]});
+            map[cy][cx].items.push({ name: "Excalibur", type: "weapons", ...items.legendary["Excalibur"] });
         }
 
     } else {
@@ -360,7 +378,7 @@ function generateMap() {
         let x = Math.floor(MAP_WIDTH / 2);
         let y = Math.floor(MAP_HEIGHT / 2);
         let steps = MAP_WIDTH * MAP_HEIGHT * 0.5;
-    
+
         for (let i = 0; i < steps; i++) {
             map[y][x].char = '.';
             map[y][x].walkable = true;
@@ -370,12 +388,14 @@ function generateMap() {
             else if (direction === 2 && x > 1) x--; // Left
             else if (direction === 3 && x < MAP_WIDTH - 2) x++; // Right
         }
-    
+
         // Place chests
         const numChests = Math.floor(MAP_WIDTH * MAP_HEIGHT / 200);
         for (let i = 0; i < numChests; i++) {
             let placedChest = false;
-            while (!placedChest) {
+            let attempts = 0;
+            while (!placedChest && attempts < 1000) {
+                attempts++;
                 const cx = Math.floor(Math.random() * MAP_WIDTH);
                 const cy = Math.floor(Math.random() * MAP_HEIGHT);
                 if (map[cy][cx].walkable && map[cy][cx].char === '.') {
@@ -394,22 +414,42 @@ function generateMap() {
 
                     const itemNames = Object.keys(items[itemType]);
                     const itemName = itemNames[Math.floor(Math.random() * itemNames.length)];
-                    map[cy][cx].items.push({name: itemName, type: itemType, ...items[itemType][itemName]});
+                    map[cy][cx].items.push({ name: itemName, type: itemType, ...items[itemType][itemName] });
                     placedChest = true;
                 }
             }
         }
-        
+
+        // Place traps
+        const numTraps = Math.floor(MAP_WIDTH * MAP_HEIGHT / 50);
+        for (let i = 0; i < numTraps; i++) {
+            let placedTrap = false;
+            let attempts = 0;
+            while (!placedTrap && attempts < 1000) {
+                attempts++;
+                const tx = Math.floor(Math.random() * MAP_WIDTH);
+                const ty = Math.floor(Math.random() * MAP_HEIGHT);
+                if (map[ty][tx].walkable && map[ty][tx].char === '.') {
+                    const trapTypeKeys = Object.keys(trapTypes);
+                    const trapType = trapTypeKeys[Math.floor(Math.random() * trapTypeKeys.length)];
+                    map[ty][tx].trap = { ...trapTypes[trapType] };
+                    placedTrap = true;
+                }
+            }
+        }
+
         // Place monsters
         const numMonsters = Math.floor(MAP_WIDTH * MAP_HEIGHT / 100);
         for (let i = 0; i < numMonsters; i++) {
             let placedMonster = false;
-            while (!placedMonster) {
+            let attempts = 0;
+            while (!placedMonster && attempts < 1000) {
+                attempts++;
                 const mx = Math.floor(Math.random() * MAP_WIDTH);
                 const my = Math.floor(Math.random() * MAP_HEIGHT);
                 if (map[my][mx].walkable && (mx !== player.x || my !== player.y)) {
                     const monsterType = Object.keys(monsterTypes)[Math.floor(Math.random() * Object.keys(monsterTypes).length)];
-                    monsters.push({ ...monsterTypes[monsterType], x: mx, y: my, stats: {...monsterTypes[monsterType].stats} });
+                    monsters.push({ ...monsterTypes[monsterType], x: mx, y: my, stats: { ...monsterTypes[monsterType].stats } });
                     placedMonster = true;
                 }
             }
@@ -418,20 +458,38 @@ function generateMap() {
 
     // Place stairs
     let placedDownStairs = false;
-    while (!placedDownStairs) {
+    let attempts = 0;
+    while (!placedDownStairs && attempts < 2000) {
+        attempts++;
         const sx = Math.floor(Math.random() * MAP_WIDTH);
         const sy = Math.floor(Math.random() * MAP_HEIGHT);
-        if (map[sy][sx].walkable) {
+        if (map[sy][sx].walkable && map[sy][sx].char !== '~' && !map[sy][sx].trap) {
             map[sy][sx].char = '>'; // Down stair
             placedDownStairs = true;
         }
     }
+    // Fallback if random placement fails
+    if (!placedDownStairs) {
+        for (let y = 0; y < MAP_HEIGHT; y++) {
+            for (let x = 0; x < MAP_WIDTH; x++) {
+                if (map[y][x].walkable) {
+                    map[y][x].char = '>';
+                    placedDownStairs = true;
+                    break;
+                }
+            }
+            if (placedDownStairs) break;
+        }
+    }
+
     if (level > 1) {
         let placedUpStairs = false;
-        while (!placedUpStairs) {
+        let attempts = 0;
+        while (!placedUpStairs && attempts < 2000) {
+            attempts++;
             const sx = Math.floor(Math.random() * MAP_WIDTH);
             const sy = Math.floor(Math.random() * MAP_HEIGHT);
-            if (map[sy][sx].walkable) {
+            if (map[sy][sx].walkable && map[sy][sx].char !== '~' && !map[sy][sx].trap && map[sy][sx].char !== '>') {
                 map[sy][sx].char = '<'; // Up stair
                 placedUpStairs = true;
             }
@@ -441,13 +499,30 @@ function generateMap() {
 
     // Place player
     let placed = false;
-    while (!placed) {
+    attempts = 0;
+    while (!placed && attempts < 2000) {
+        attempts++;
         const px = Math.floor(Math.random() * MAP_WIDTH);
         const py = Math.floor(Math.random() * MAP_HEIGHT);
-        if (map[py][px].walkable) {
+        const tile = map[py][px];
+        if (tile.walkable && tile.char !== '>' && tile.char !== '<' && tile.char !== '~' && !tile.trap && !monsters.some(m => m.x === px && m.y === py)) {
             player.x = px;
             player.y = py;
             placed = true;
+        }
+    }
+    // Fallback for player
+    if (!placed) {
+        for (let y = 0; y < MAP_HEIGHT; y++) {
+            for (let x = 0; x < MAP_WIDTH; x++) {
+                if (map[y][x].walkable && map[y][x].char !== '>') {
+                    player.x = x;
+                    player.y = y;
+                    placed = true;
+                    break;
+                }
+            }
+            if (placed) break;
         }
     }
 }
@@ -497,7 +572,7 @@ function drawMap() {
             } else if (!tile.visible) {
                 row += `\x1b[90m${corpse ? `\x1b[31m${corpse.symbol}\x1b[0m` : tile.char}\x1b[0m`; // Dim gray
             } else {
-                 if (player.x === x && player.y === y) {
+                if (player.x === x && player.y === y) {
                     row += '@';
                 } else if (monster) {
                     row += `${monster.color}${monster.symbol}\x1b[0m`;
@@ -505,6 +580,8 @@ function drawMap() {
                     row += summon.symbol;
                 } else if (corpse) {
                     row += `\x1b[31m${corpse.symbol}\x1b[0m`;
+                } else if (tile.trap && tile.trap.revealed) {
+                    row += `${tile.trap.color}${tile.trap.symbol}\x1b[0m`;
                 } else {
                     row += tile.char;
                 }
@@ -565,7 +642,7 @@ function gameLoop() {
         if (dx !== 0 || dy !== 0) {
             movePlayer(dx, dy);
         }
-        
+
         if (player.stats.hp > 0) {
             gameLoop();
         }
@@ -587,10 +664,10 @@ function changeLevel(levelChange) {
 }
 
 function movePlayer(dx, dy) {
-    if(player.stats.hp <= 0) return;
+    if (player.stats.hp <= 0) return;
     const newX = player.x + dx;
     const newY = player.y + dy;
-    
+
     if (map[newY][newX].char === '~' || map[newY][newX].char === '?') {
         const itemsOnTile = map[newY][newX].items;
         if (itemsOnTile.length > 0) {
@@ -619,8 +696,45 @@ function movePlayer(dx, dy) {
     } else if (newX >= 0 && newX < MAP_WIDTH && newY >= 0 && newY < MAP_HEIGHT && map[newY][newX].walkable) {
         player.x = newX;
         player.y = newY;
+
+        // Check for traps
+        if (map[newY][newX].trap && !map[newY][newX].trap.revealed) {
+            const trap = map[newY][newX].trap;
+            trap.revealed = true;
+            log(trap.message, 'damage');
+
+            if (trap.damage) {
+                player.stats.hp -= trap.damage;
+                if (player.stats.hp <= 0) {
+                    log('You died from a trap! Game Over.', 'death');
+                    process.exit();
+                }
+            }
+            if (trap.effect === 'teleport') {
+                let teleported = false;
+                while (!teleported) {
+                    const tx = Math.floor(Math.random() * MAP_WIDTH);
+                    const ty = Math.floor(Math.random() * MAP_HEIGHT);
+                    if (map[ty][tx].walkable) {
+                        player.x = tx;
+                        player.y = ty;
+                        teleported = true;
+                        log('You were teleported to a new location!', 'info');
+                        computeFov(); // Recompute FOV instantly
+                    }
+                }
+            } else if (trap.effect === 'poison') {
+                // Implementing simple damage for now, could be DOT
+                player.stats.hp -= trap.damage;
+                log(`The poison burns for another ${trap.damage} damage!`, 'damage');
+                if (player.stats.hp <= 0) {
+                    log('You died from poison! Game Over.', 'death');
+                    process.exit();
+                }
+            }
+        }
     }
-    
+
     moveSummons();
     moveMonsters();
     computeFov();
@@ -628,11 +742,11 @@ function movePlayer(dx, dy) {
 
 function moveMonsters() {
     for (const monster of monsters) {
-        if(monster.stunned > 0) {
+        if (monster.stunned > 0) {
             monster.stunned--;
             continue;
         }
-        if(monster.fleeing > 0) {
+        if (monster.fleeing > 0) {
             monster.fleeing--;
             const dx = Math.sign(monster.x - player.x);
             const dy = Math.sign(monster.y - player.y);
@@ -669,12 +783,12 @@ function moveMonsters() {
             const dy = Math.floor(Math.random() * 3) - 1;
             const newX = monster.x + dx;
             const newY = monster.y + dy;
-            
+
             if (newX === player.x && newY === player.y) {
                 attack(monster, player);
                 continue;
             }
-    
+
             if (newX >= 0 && newX < MAP_WIDTH && newY >= 0 && newY < MAP_HEIGHT && map[newY][newX].walkable) {
                 const isMonster = monsters.some(m => m.x === newX && m.y === newY);
                 if (!isMonster) {
@@ -706,7 +820,7 @@ function moveSummons() {
             dx = Math.sign(player.x - summon.x);
             dy = Math.sign(player.y - summon.y);
         }
-        
+
         const newX = summon.x + dx;
         const newY = summon.y + dy;
 
@@ -715,7 +829,7 @@ function moveSummons() {
             attack(summon, monster);
             continue;
         }
-        
+
         if (newX >= 0 && newX < MAP_WIDTH && newY >= 0 && newY < MAP_HEIGHT && map[newY][newX].walkable) {
             const isOccupied = monsters.some(m => m.x === newX && m.y === newY) || summons.some(s => s.x === newX && s.y === newY);
             if (!isOccupied) {
@@ -731,7 +845,7 @@ function attack(attacker, defender) {
         player.stats.attack += 10;
         log('Harambe is enraged!', 'heal');
     }
-    
+
     if (player.ability?.name === "Distracted Boyfriend" && Math.random() < 0.5) {
         log('You were distracted and missed!', 'info');
         return;
@@ -771,7 +885,7 @@ function log(message, type) {
     if (type === 'damage') coloredMessage = `\x1b[31m${message}\x1b[0m`; // red
     else if (type === 'heal') coloredMessage = `\x1b[32m${message}\x1b[0m`; // green
     else if (type === 'death') coloredMessage = `\x1b[31m\x1b[1m${message}\x1b[0m`; // bold red
-    
+
     gameLog.unshift(coloredMessage);
     if (gameLog.length > 5) {
         gameLog.pop();
@@ -797,36 +911,46 @@ function summon(type = "Troll") {
         const sx = player.x + Math.floor(Math.random() * 3) - 1;
         const sy = player.y + Math.floor(Math.random() * 3) - 1;
         if (sx >= 0 && sx < MAP_WIDTH && sy >= 0 && sy < MAP_HEIGHT && map[sy][sx].walkable && (sx !== player.x || sy !== player.y) && !monsters.some(m => m.x === sx && m.y === sy) && !summons.some(s => s.x === sx && s.y === sy)) {
-            summons.push({ ...summonTypes[type], x: sx, y: sy, stats: {...summonTypes[type].stats} });
+            summons.push({ ...summonTypes[type], x: sx, y: sy, stats: { ...summonTypes[type].stats } });
             placed = true;
             log(`A ${type} has been summoned!`, 'info');
         }
     }
 }
 
-async function equip() {
-    console.clear();
-    console.log('Your inventory:');
-    player.inventory.forEach((item, index) => {
-        console.log(`${index + 1}. ${item.name}`);
-    });
+async function equip(targetIndex = -1) {
+    let itemIndex = targetIndex;
 
-    const itemIndex = await new Promise(resolve => {
-        process.stdin.once('data', (data) => {
-            resolve(parseInt(data.toString()) - 1);
+    if (itemIndex === -1) {
+        console.clear();
+        console.log('Your inventory:');
+        player.inventory.forEach((item, index) => {
+            console.log(`${index + 1}. ${item.name}`);
         });
-    });
+
+        itemIndex = await new Promise(resolve => {
+            process.stdin.once('data', (data) => {
+                resolve(parseInt(data.toString()) - 1);
+            });
+        });
+    }
 
     const item = player.inventory[itemIndex];
     if (item) {
         if (item.type === 'weapons') {
-            if(player.equipment.weapon) player.inventory.push(player.equipment.weapon);
+            if (player.equipment.weapon) {
+                player.stats.attack -= player.equipment.weapon.attack;
+                player.inventory.push(player.equipment.weapon);
+            }
             player.equipment.weapon = item;
-            player.stats.attack = classes[player.description.split(" ")[0]][player.description].stats.attack + item.attack;
+            player.stats.attack += item.attack;
         } else if (item.type === 'armor') {
-            if(player.equipment.armor) player.inventory.push(player.equipment.armor);
+            if (player.equipment.armor) {
+                player.stats.defense -= player.equipment.armor.defense;
+                player.inventory.push(player.equipment.armor);
+            }
             player.equipment.armor = item;
-            player.stats.defense = classes[player.description.split(" ")[0]][player.description].stats.defense + item.defense;
+            player.stats.defense += item.defense;
         }
         player.inventory.splice(itemIndex, 1);
         log(`You equipped the ${item.name}.`, 'info');
@@ -853,8 +977,8 @@ function useAbility() {
             }
             return closest;
         }, { monster: null, dist: Infinity });
-        if(target.monster) {
-            attack({name: "Eldritch Blast", stats: {attack: 30, defense: 0}}, target.monster);
+        if (target.monster) {
+            attack({ name: "Eldritch Blast", stats: { attack: 30, defense: 0 } }, target.monster);
         } else {
             log('No target in sight.', 'info');
         }
@@ -866,11 +990,11 @@ function useAbility() {
             }
             return closest;
         }, { monster: null, dist: Infinity });
-        if(target.monster) {
+        if (target.monster) {
             monsters.forEach(monster => {
                 const dist = Math.hypot(monster.x - target.monster.x, monster.y - target.monster.y);
                 if (dist <= 3) {
-                    attack({name: "Bomb", stats: {attack: 20, defense: 0}}, monster);
+                    attack({ name: "Bomb", stats: { attack: 20, defense: 0 } }, monster);
                 }
             });
         } else {
@@ -881,19 +1005,19 @@ function useAbility() {
         log('You used Lay on Hands and have been fully healed.', 'heal');
     } else if (player.ability.name === "DDoS") {
         monsters.forEach(m => {
-            if(map[m.y][m.x].visible) m.stunned = 3;
+            if (map[m.y][m.x].visible) m.stunned = 3;
         });
         log('You DDoS all enemies in sight!', 'info');
     } else if (player.ability.name === "Intimidating Dance") {
         monsters.forEach(m => {
-            if(Math.hypot(m.x - player.x, m.y - player.y) <= 5) m.fleeing = 3;
+            if (Math.hypot(m.x - player.x, m.y - player.y) <= 5) m.fleeing = 3;
         });
         log('You dance menacingly, enemies flee in terror!', 'info');
     } else if (player.ability.name === "Wrangle Gator") {
         if (Math.random() < 0.5) {
             summon("Gator");
         } else {
-            const gator = { ...summonTypes["Gator"], x: player.x + 1, y: player.y, stats: {...summonTypes["Gator"].stats} };
+            const gator = { ...summonTypes["Gator"], x: player.x + 1, y: player.y, stats: { ...summonTypes["Gator"].stats } };
             attack(gator, player);
         }
     } else if (player.ability.name === "Spellstrike") {
@@ -913,7 +1037,7 @@ function useAbility() {
             }
             return closest;
         }, { monster: null, dist: Infinity });
-        if(target.monster) {
+        if (target.monster) {
             target.monster.stats.attack -= 5;
             target.monster.stats.defense -= 5;
             log(`${target.monster.name} has been judged!`, 'info');
@@ -928,7 +1052,7 @@ function useAbility() {
             }
             return closest;
         }, { monster: null, dist: Infinity });
-        if(target.monster) {
+        if (target.monster) {
             target.monster.cursed = 5;
             log(`${target.monster.name} has been cursed!`, 'info');
         } else {
@@ -955,12 +1079,12 @@ function useAbility() {
         if (monsters.length > 0) {
             const randomIndex = Math.floor(Math.random() * monsters.length);
             const target = monsters[randomIndex];
-            attack({name: "Smite", stats: {attack: 9999, defense: 0}}, target);
+            attack({ name: "Smite", stats: { attack: 9999, defense: 0 } }, target);
         } else {
             log('No enemies to smite.', 'info');
         }
     } else if (player.ability.name === "Serious Punch") {
-        monsters.forEach(m => attack({name: "Serious Punch", stats: {attack: 9999, defense: 0}}, m));
+        monsters.forEach(m => attack({ name: "Serious Punch", stats: { attack: 9999, defense: 0 } }, m));
     } else if (player.ability.name === "Rewrite Reality") {
         for (let y = 0; y < MAP_HEIGHT; y++) {
             for (let x = 0; x < MAP_WIDTH; x++) {
@@ -971,7 +1095,7 @@ function useAbility() {
     } else if (player.ability.name === "Omnipotence") {
         const legendaryItems = Object.keys(items.legendary);
         const itemName = legendaryItems[Math.floor(Math.random() * legendaryItems.length)];
-        player.inventory.push({name: itemName, type: "legendary", ...items.legendary[itemName]});
+        player.inventory.push({ name: itemName, type: "legendary", ...items.legendary[itemName] });
         log(`You received a ${itemName}!`, 'heal');
     } else if (player.ability.name === "Return to Zero") {
         player.stats.hp = player.stats.maxHp;
@@ -985,14 +1109,14 @@ function useAbility() {
             }
             return closest;
         }, { monster: null, dist: Infinity });
-        if(target.monster) {
+        if (target.monster) {
             monsters = monsters.filter(m => m !== target.monster);
             log(`You roundhouse kicked ${target.monster.name} into another dimension!`, 'info');
         } else {
             log('No target in sight.', 'info');
         }
     } else if (player.ability.name === "Gunslinger") {
-        for(let i = 0; i < 5; i++) {
+        for (let i = 0; i < 5; i++) {
             const target = monsters.reduce((closest, monster) => {
                 const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
                 if (dist < closest.dist) {
@@ -1000,19 +1124,19 @@ function useAbility() {
                 }
                 return closest;
             }, { monster: null, dist: Infinity });
-            if(target.monster) {
+            if (target.monster) {
                 attack(player, target.monster);
             }
         }
     } else if (player.ability.name === "Snap") {
-        if(Math.random() < 0.5) {
+        if (Math.random() < 0.5) {
             monsters = monsters.slice(0, Math.floor(monsters.length / 2));
             log('You snapped your fingers. Half of all monsters are gone.', 'info');
         } else {
             log('Your snap did nothing.', 'info');
         }
     } else if (player.ability.name === "Speedforce") {
-        for(let i = 0; i < 3; i++) {
+        for (let i = 0; i < 3; i++) {
             gameLoop();
         }
         log('You moved at the speed of light!', 'info');
@@ -1028,22 +1152,22 @@ function findPath(start, end) {
     const openList = [];
     const closedList = [];
     const startNode = { x: start.x, y: start.y, g: 0, h: 0, f: 0, parent: null };
-    
+
     openList.push(startNode);
 
-    while(openList.length > 0) {
+    while (openList.length > 0) {
         let lowestFIndex = 0;
-        for(let i=0; i<openList.length; i++) {
-            if(openList[i].f < openList[lowestFIndex].f) {
+        for (let i = 0; i < openList.length; i++) {
+            if (openList[i].f < openList[lowestFIndex].f) {
                 lowestFIndex = i;
             }
         }
         let currentNode = openList[lowestFIndex];
 
-        if(currentNode.x === end.x && currentNode.y === end.y) {
+        if (currentNode.x === end.x && currentNode.y === end.y) {
             let path = [];
             let current = currentNode;
-            while(current.parent) {
+            while (current.parent) {
                 path.push(current);
                 current = current.parent;
             }
@@ -1054,30 +1178,30 @@ function findPath(start, end) {
         closedList.push(currentNode);
 
         const neighbors = [
-            {x:0, y:-1}, {x:0, y:1}, {x:-1, y:0}, {x:1, y:0}
+            { x: 0, y: -1 }, { x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }
         ];
 
-        for(const neighbor of neighbors) {
+        for (const neighbor of neighbors) {
             const newX = currentNode.x + neighbor.x;
             const newY = currentNode.y + neighbor.y;
 
-            if(newX < 0 || newX >= MAP_WIDTH || newY < 0 || newY >= MAP_HEIGHT) continue;
-            if(!map[newY][newX].walkable) continue;
-            if(closedList.find(node => node.x === newX && node.y === newY)) continue;
+            if (newX < 0 || newX >= MAP_WIDTH || newY < 0 || newY >= MAP_HEIGHT) continue;
+            if (!map[newY][newX].walkable) continue;
+            if (closedList.find(node => node.x === newX && node.y === newY)) continue;
 
             const gScore = currentNode.g + 1;
             let gScoreIsBest = false;
 
             let neighborNode = openList.find(node => node.x === newX && node.y === newY);
-            if(!neighborNode) {
+            if (!neighborNode) {
                 gScoreIsBest = true;
-                neighborNode = {x: newX, y: newY, h: Math.abs(newX - end.x) + Math.abs(newY - end.y), parent: currentNode };
+                neighborNode = { x: newX, y: newY, h: Math.abs(newX - end.x) + Math.abs(newY - end.y), parent: currentNode };
                 openList.push(neighborNode);
-            } else if(gScore < neighborNode.g) {
+            } else if (gScore < neighborNode.g) {
                 gScoreIsBest = true;
             }
 
-            if(gScoreIsBest) {
+            if (gScoreIsBest) {
                 neighborNode.parent = currentNode;
                 neighborNode.g = gScore;
                 neighborNode.f = neighborNode.g + neighborNode.h;
@@ -1098,7 +1222,7 @@ function autoCombatLoop() {
     if (autoHeal && player.stats.hp < player.stats.maxHp * 0.5) {
         heal();
     }
-    
+
     // Auto-equip best gear
     let bestWeapon = player.equipment.weapon;
     let bestArmor = player.equipment.armor;
@@ -1116,8 +1240,18 @@ function autoCombatLoop() {
         }
     });
 
-    if (bestWeaponIndex !== -1) equip(bestWeaponIndex);
-    if (bestArmorIndex !== -1) equip(bestArmorIndex);
+    if (bestWeaponIndex !== -1) {
+        equip(bestWeaponIndex);
+        draw();
+        setTimeout(autoCombatLoop, 500);
+        return;
+    }
+    if (bestArmorIndex !== -1) {
+        equip(bestArmorIndex);
+        draw();
+        setTimeout(autoCombatLoop, 500);
+        return;
+    }
 
     // Use ability
     if (player.ability && player.ability.turn === 0) {
@@ -1131,16 +1265,16 @@ function autoCombatLoop() {
         for (let y = 0; y < MAP_HEIGHT; y++) {
             for (let x = 0; x < MAP_WIDTH; x++) {
                 if (map[y][x].char === '>') {
-                    stairs = {x, y};
+                    stairs = { x, y };
                     break;
                 }
             }
-            if(stairs) break;
+            if (stairs) break;
         }
 
         if (stairs) {
             const path = findPath(player, stairs);
-            if(path.length > 0) {
+            if (path.length > 0) {
                 const nextStep = path[0];
                 const dx = nextStep.x - player.x;
                 const dy = nextStep.y - player.y;
@@ -1157,10 +1291,10 @@ function autoCombatLoop() {
             }
             return closest;
         }, { monster: null, dist: Infinity });
-    
+
         if (nearestMonster.monster) {
             const path = findPath(player, nearestMonster.monster);
-            if(path.length > 0) {
+            if (path.length > 0) {
                 const nextStep = path[0];
                 const dx = nextStep.x - player.x;
                 const dy = nextStep.y - player.y;
@@ -1180,11 +1314,11 @@ async function initializeGame() {
 
     MAP_WIDTH = Math.floor(screenWidth * 0.6);
     MAP_HEIGHT = Math.floor(screenHeight * 0.6);
-    
+
     // Ensure minimum dimensions
     if (MAP_WIDTH < 50) MAP_WIDTH = 50;
     if (MAP_HEIGHT < 20) MAP_HEIGHT = 20;
-    
+
     console.log("Welcome to the Roguelike game!");
     await characterCreation();
 }
