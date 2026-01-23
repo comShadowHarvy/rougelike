@@ -21,6 +21,8 @@ let level = 1;
 let MAP_WIDTH = 50;
 let MAP_HEIGHT = 20;
 
+
+
 const items = {
     weapons: {
         "Dagger": { attack: 5, name: "Dagger", type: "weapons" },
@@ -72,6 +74,8 @@ const summonTypes = {
     "Gator": { name: "Gator", stats: { hp: 60, maxHp: 60, attack: 15, defense: 5 }, symbol: 'g' },
     "Eidolon": { name: "Eidolon", stats: { hp: 100, maxHp: 100, attack: 20, defense: 10 }, symbol: 'E' },
     "Pet": { name: "Pet", stats: { hp: 40, maxHp: 40, attack: 8, defense: 4 }, symbol: 'p' },
+    "Wolf": { name: "Wolf", stats: { hp: 40, maxHp: 40, attack: 8, defense: 4 }, symbol: 'w' },
+    "Skeleton": { name: "Skeleton", stats: { hp: 30, maxHp: 30, attack: 5, defense: 2 }, symbol: 's' }
 };
 
 const trapTypes = {
@@ -132,6 +136,36 @@ const classes = {
             description: "Can 'speak to the manager', causing a random boss to spawn.",
             stats: { hp: 80, attack: 8, defense: 4 },
             ability: { name: "Speak to the Manager", cooldown: 20, turn: 0 },
+        },
+        "Stonks Guy": {
+            description: "Can manipulate the market (stats).",
+            stats: { hp: 110, attack: 5, defense: 10 },
+            ability: { name: "Hodl", cooldown: 5, turn: 0 },
+        },
+        "Doge": {
+            description: "Such wow. Very stats.",
+            stats: { hp: 90, attack: 8, defense: 6 },
+            ability: { name: "Bark", cooldown: 4, turn: 0 },
+        },
+        "Nyan Cat": {
+            description: "Leaves a rainbow trail.",
+            stats: { hp: 70, attack: 6, defense: 3 },
+            ability: { name: "Zoomies", cooldown: 3, turn: 0 },
+        },
+        "Simp": {
+            description: "Defends others at all costs.",
+            stats: { hp: 120, attack: 4, defense: 8 },
+            ability: { name: "White Knight", cooldown: 6, turn: 0 },
+        },
+        "Trollface": {
+            description: "Problem?",
+            stats: { hp: 100, attack: 7, defense: 5 },
+            ability: { name: "U Mad?", cooldown: 8, turn: 0 },
+        },
+        "This is Fine Dog": {
+            description: "Ignores the fire around them.",
+            stats: { hp: 80, attack: 5, defense: 5 },
+            ability: { name: "Ignore Fire", cooldown: 10, turn: 0 },
         }
     },
     "Pathfinder": {
@@ -186,6 +220,36 @@ const classes = {
             stats: { hp: 100, attack: 10, defense: 6 },
             canSummon: true,
             ability: { name: "Summon Pet", cooldown: 10, turn: 0 },
+        },
+        "Cavalier": {
+            description: "A mounted warrior skilled in charging.",
+            stats: { hp: 120, attack: 12, defense: 8 },
+            ability: { name: "Challenge", cooldown: 5, turn: 0 },
+        },
+        "Witch": {
+            description: "Uses hexes to debilitate enemies.",
+            stats: { hp: 70, attack: 6, defense: 4 },
+            ability: { name: "Evil Eye", cooldown: 4, turn: 0 },
+        },
+        "Bloodrager": {
+            description: "Combines arcane power with potential rage.",
+            stats: { hp: 110, attack: 13, defense: 5 },
+            ability: { name: "Bloodrage", cooldown: 8, turn: 0 },
+        },
+        "Skald": {
+            description: "Inspires rage in allies.",
+            stats: { hp: 100, attack: 9, defense: 6 },
+            ability: { name: "Raging Song", cooldown: 6, turn: 0 },
+        },
+        "Shaman": {
+            description: "Communes with spirits.",
+            stats: { hp: 85, attack: 7, defense: 5 },
+            ability: { name: "Spirit Animal", cooldown: 10, turn: 0 },
+        },
+        "Slayer": {
+            description: "Specializes in taking down specific targets.",
+            stats: { hp: 100, attack: 11, defense: 6 },
+            ability: { name: "Studied Target", cooldown: 5, turn: 0 },
         }
     },
     "D&D": {
@@ -238,6 +302,36 @@ const classes = {
             description: "A skilled hunter and tracker.",
             stats: { hp: 100, attack: 10, defense: 6 },
             ability: { name: "Hunter's Mark", cooldown: 6, turn: 0 },
+        },
+        "Necromancer": {
+            description: "Masters of death and undeath.",
+            stats: { hp: 70, attack: 6, defense: 3 },
+            ability: { name: "Raise Dead", cooldown: 15, turn: 0 },
+        },
+        "Illusionist": {
+            description: "Deceives enemies with magical illusions.",
+            stats: { hp: 75, attack: 5, defense: 5 },
+            ability: { name: "Mirror Image", cooldown: 8, turn: 0 },
+        },
+        "Battlemaster": {
+            description: "A master of martial combat techniques.",
+            stats: { hp: 115, attack: 12, defense: 8 },
+            ability: { name: "Maneuvers", cooldown: 6, turn: 0 },
+        },
+        "Assassin": {
+            description: "Deadly killer striking from the shadows.",
+            stats: { hp: 85, attack: 14, defense: 4 },
+            ability: { name: "Assassinate", cooldown: 10, turn: 0 },
+        },
+        "Storm Sorcerer": {
+            description: "Controls the power of the storm.",
+            stats: { hp: 80, attack: 9, defense: 5 },
+            ability: { name: "Tempest", cooldown: 7, turn: 0 },
+        },
+        "Life Cleric": {
+            description: "Dedicated to healing and restoration.",
+            stats: { hp: 95, attack: 7, defense: 8 },
+            ability: { name: "Preserve Life", cooldown: 12, turn: 0 },
         }
     },
     "Overpowered": {
@@ -290,49 +384,88 @@ const classes = {
             description: "Can see the future, allowing the player to re-roll a failed action.",
             stats: { hp: 10000, attack: 10000, defense: 10000 },
             ability: { name: "Quantum Immortality", cooldown: 100, turn: 0 },
+        },
+        "Doom Slayer": {
+            description: "Rip and Tear, until it is done.",
+            stats: { hp: 1500, attack: 150, defense: 150 },
+            ability: { name: "BFG 9000", cooldown: 25, turn: 0 },
+        },
+        "Kratos": {
+            description: "The Ghost of Sparta.",
+            stats: { hp: 1200, attack: 130, defense: 100 },
+            ability: { name: "Spartan Rage", cooldown: 20, turn: 0 },
+        },
+        "Goku": {
+            description: "Earth's greatest defender.",
+            stats: { hp: 1100, attack: 140, defense: 90 },
+            ability: { name: "Kamehameha", cooldown: 15, turn: 0 },
+        },
+        "Superman": {
+            description: "Faster than a speeding bullet.",
+            stats: { hp: 2000, attack: 180, defense: 180 },
+            ability: { name: "Heat Vision", cooldown: 10, turn: 0 },
+        },
+        "Rick Sanchez": {
+            description: "Smartest man in the universe.",
+            stats: { hp: 500, attack: 80, defense: 40 },
+            ability: { name: "Portal Gun", cooldown: 30, turn: 0 },
+        },
+        "Shaggy": {
+            description: "Uses 0.001% of his power.",
+            stats: { hp: 5000, attack: 500, defense: 5000 },
+            ability: { name: "Zoinks", cooldown: 40, turn: 0 },
         }
     }
 };
 
-async function characterCreation() {
-    console.clear();
-    console.log('Choose your class category:');
-    const categories = Object.keys(classes);
-    categories.forEach((category, index) => {
-        console.log(`${index + 1}. ${category}`);
-    });
+async function selectOption(promptText, options) {
+    const pageSize = 9;
+    let page = 0;
+    while (true) {
+        console.clear();
+        console.log(promptText);
+        const start = page * pageSize;
+        const end = Math.min(start + pageSize, options.length);
 
+        for (let i = start; i < end; i++) {
+            console.log(`${(i - start) + 1}. ${options[i]}`);
+        }
 
+        if (options.length > pageSize) {
+            console.log("0. Next Page");
+        }
 
-    let categoryIndex = -1;
-    while (categoryIndex < 0 || categoryIndex >= categories.length) {
-        categoryIndex = await new Promise(resolve => {
+        const selectedIndex = await new Promise(resolve => {
+            process.stdin.resume(); // Ensure stdin is flowing
             process.stdin.once('data', (data) => {
                 const val = parseInt(data.toString().trim());
-                if (!isNaN(val)) resolve(val - 1);
+                if (!isNaN(val)) resolve(val);
                 else resolve(-1);
             });
         });
+
+        if (selectedIndex === 0 && options.length > pageSize) {
+            page++;
+            if (page * pageSize >= options.length) {
+                page = 0;
+            }
+        } else if (selectedIndex > 0 && selectedIndex <= (end - start)) {
+            return start + (selectedIndex - 1);
+        }
     }
+}
+
+async function characterCreation() {
+    const categories = Object.keys(classes);
+    const categoryIndex = await selectOption('Choose your class category:', categories);
 
     const category = categories[categoryIndex];
-    console.clear();
-    console.log(`Choose your class in the ${category} category:`);
     const classNames = Object.keys(classes[category]);
-    classNames.forEach((className, index) => {
-        console.log(`${index + 1}. ${className} - ${classes[category][className].description}`);
-    });
+    const classDisplayList = classNames.map(className =>
+        `${className} - ${classes[category][className].description}`
+    );
 
-    let classIndex = -1;
-    while (classIndex < 0 || classIndex >= classNames.length) {
-        classIndex = await new Promise(resolve => {
-            process.stdin.once('data', (data) => {
-                const val = parseInt(data.toString().trim());
-                if (!isNaN(val)) resolve(val - 1);
-                else resolve(-1);
-            });
-        });
-    }
+    const classIndex = await selectOption(`Choose your class in the ${category} category:`, classDisplayList);
 
     const className = classNames[classIndex];
     const classData = classes[category][className];
@@ -841,6 +974,15 @@ function moveSummons() {
 }
 
 function attack(attacker, defender) {
+    if (defender === player && player.invincible) {
+        log('Attack deflected by Spartan Rage!', 'info');
+        return;
+    }
+    if (defender === player && player.dodgeChance > 0 && Math.random() < player.dodgeChance) {
+        log('You dodged the attack (Mirror Image)!', 'info');
+        return;
+    }
+
     if (player.ability?.name === "Harambe" && defender.name === "Troll") {
         player.stats.attack += 10;
         log('Harambe is enraged!', 'heal');
@@ -851,7 +993,14 @@ function attack(attacker, defender) {
         return;
     }
 
-    const damage = Math.max(0, attacker.stats.attack - defender.stats.defense);
+    let damage = Math.max(0, attacker.stats.attack - defender.stats.defense);
+
+    if (attacker === player && player.nextAttackMult > 1) {
+        damage *= player.nextAttackMult;
+        player.nextAttackMult = 1;
+        log('Critical Hit from study!', 'damage');
+    }
+
     defender.stats.hp -= damage;
     log(`${attacker.name} attacks ${defender.name} for ${damage} damage.`, 'damage');
     if (defender.stats.hp <= 0) {
@@ -1142,6 +1291,186 @@ function useAbility() {
         log('You moved at the speed of light!', 'info');
     } else if (player.ability.name === "Quantum Immortality") {
         log('You contemplate your existence.', 'info');
+    } else if (player.ability.name === "Hodl") {
+        if (Math.random() < 0.5) {
+            player.stats.attack *= 2;
+            player.stats.defense *= 2;
+            log('Stonks go up! 2x stats!', 'heal');
+            setTimeout(() => {
+                player.stats.attack /= 2;
+                player.stats.defense /= 2;
+                log('Stonks returning to normal.', 'info');
+            }, 5000);
+        } else {
+            player.stats.attack = Math.max(1, Math.floor(player.stats.attack / 2));
+            player.stats.defense = Math.max(1, Math.floor(player.stats.defense / 2));
+            log('Stonks go down. Halved stats.', 'damage');
+            setTimeout(() => {
+                player.stats.attack *= 2;
+                player.stats.defense *= 2;
+                log('Market correction.', 'info');
+            }, 5000);
+        }
+    } else if (player.ability.name === "Bark") {
+        monsters.forEach(m => {
+            if (Math.hypot(m.x - player.x, m.y - player.y) <= 5) {
+                m.fleeing = 3; // Reusing fleeing for "confusion" effect
+            }
+        });
+        log('Such bark! Enemies are confused/scared!', 'info');
+    } else if (player.ability.name === "Zoomies") {
+        for (let i = 0; i < 3; i++) {
+            const dx = Math.floor(Math.random() * 3) - 1;
+            const dy = Math.floor(Math.random() * 3) - 1;
+            const newX = player.x + dx;
+            const newY = player.y + dy;
+            if (newX >= 0 && newX < MAP_WIDTH && newY >= 0 && newY < MAP_HEIGHT && map[newY][newX].walkable) {
+                player.x = newX;
+                player.y = newY;
+            }
+        }
+        log('Zoomies! You moved wildly.', 'info');
+    } else if (player.ability.name === "White Knight") {
+        // Heal nearest monster? Or self if alone. Simp logic.
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            return dist < closest.dist ? { monster, dist } : closest;
+        }, { monster: null, dist: Infinity });
+
+        if (target.monster && target.dist < 5) {
+            target.monster.stats.hp = target.monster.stats.maxHp;
+            log(`Simp mode activated! You fully healed ${target.monster.name}!`, 'info');
+        } else {
+            heal();
+        }
+    } else if (player.ability.name === "U Mad?") {
+        monsters.forEach(m => {
+            m.stats.attack = Math.max(1, Math.floor(m.stats.attack * 0.8));
+        });
+        log('Problem? Enemies look frustrated (Attack down).', 'info');
+    } else if (player.ability.name === "Ignore Fire") {
+        heal();
+        player.stats.defense += 5;
+        log('This is fine. (+Def, +Heal)', 'heal');
+    } else if (player.ability.name === "Challenge") {
+        player.stats.defense += 10;
+        log('You challenge your foes! (+Def)', 'heal');
+        setTimeout(() => { player.stats.defense -= 10; }, 5000);
+    } else if (player.ability.name === "Evil Eye") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            return dist < closest.dist ? { monster, dist } : closest;
+        }, { monster: null, dist: Infinity });
+        if (target.monster) {
+            target.monster.stats.defense = Math.floor(target.monster.stats.defense / 2);
+            log(`${target.monster.name} is cursed by the Evil Eye (Def halved)!`, 'info');
+        }
+    } else if (player.ability.name === "Bloodrage") {
+        player.stats.attack += 20;
+        player.stats.defense -= 10;
+        log('Bloodrage! (+Atk, -Def)', 'damage');
+        setTimeout(() => {
+            player.stats.attack -= 20;
+            player.stats.defense += 10;
+            log('Bloodrage ended.', 'info');
+        }, 5000);
+    } else if (player.ability.name === "Raging Song") {
+        player.stats.attack += 10;
+        summons.forEach(s => s.stats.attack += 10);
+        log('Raging Song! Allies gain Attack.', 'heal');
+        setTimeout(() => {
+            player.stats.attack -= 10;
+            summons.forEach(s => s.stats.attack -= 10);
+        }, 5000);
+    } else if (player.ability.name === "Spirit Animal") {
+        summon("Wolf"); // Assuming Wolf exists or fallback
+    } else if (player.ability.name === "Studied Target") {
+        player.nextAttackMult = 2; // Need to handle this in attack
+        log('Studied Target. Next attack deals 2x damage.', 'info');
+    } else if (player.ability.name === "Raise Dead") {
+        if (corpses.length > 0) {
+            const corpse = corpses.pop();
+            summons.push({ ...summonTypes["Skeleton"], x: corpse.x, y: corpse.y, stats: { ...summonTypes["Skeleton"].stats } });
+            log('Arise!', 'info');
+        } else {
+            log('No corpses to raise.', 'info');
+        }
+    } else if (player.ability.name === "Mirror Image") {
+        player.dodgeChance = 0.5;
+        log('Mirror Images invoke! (50% Dodge)', 'info');
+        setTimeout(() => { player.dodgeChance = 0; log('Mirror Images fade.', 'info'); }, 5000);
+    } else if (player.ability.name === "Maneuvers") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            return dist < closest.dist ? { monster, dist } : closest;
+        }, { monster: null, dist: Infinity });
+        if (target.monster) {
+            attack({ name: "Maneuver", stats: { attack: player.stats.attack * 2, defense: 0 } }, target.monster);
+            target.monster.stunned = 2;
+        }
+    } else if (player.ability.name === "Assassinate") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            return dist < closest.dist ? { monster, dist } : closest;
+        }, { monster: null, dist: Infinity });
+        if (target.monster) {
+            const mult = (target.monster.stats.hp === target.monster.stats.maxHp) ? 3 : 1;
+            attack({ name: "Assassinate", stats: { attack: player.stats.attack * mult, defense: 0 } }, target.monster);
+        }
+    } else if (player.ability.name === "Tempest") {
+        monsters.forEach(m => {
+            if (Math.hypot(m.x - player.x, m.y - player.y) <= 5) {
+                attack({ name: "Tempest", stats: { attack: 25, defense: 0 } }, m);
+            }
+        });
+        log('Storm rages around you!', 'damage');
+    } else if (player.ability.name === "Preserve Life") {
+        player.stats.hp = Math.min(player.stats.maxHp, player.stats.hp + 50);
+        summons.forEach(s => s.stats.hp = Math.min(s.stats.maxHp, s.stats.hp + 50));
+        log('Healing surge!', 'heal');
+    } else if (player.ability.name === "BFG 9000") {
+        const initialCount = monsters.length;
+        monsters = monsters.filter(m => bossTypes[m.name] !== undefined); // Keep bosses
+        const killed = initialCount - monsters.length;
+        log(`BFG 9000 fired! Vaporized ${killed} demons.`, 'damage');
+    } else if (player.ability.name === "Spartan Rage") {
+        player.invincible = true;
+        player.stats.attack += 50;
+        log('SPARTAN RAGE!', 'damage');
+        setTimeout(() => {
+            player.invincible = false;
+            player.stats.attack -= 50;
+            log('Rage subsides.', 'info');
+        }, 5000);
+    } else if (player.ability.name === "Kamehameha") {
+        // Deal massive damage to nearest
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            return dist < closest.dist ? { monster, dist } : closest;
+        }, { monster: null, dist: Infinity });
+        if (target.monster) {
+            attack({ name: "Kamehameha", stats: { attack: 50, defense: 0 } }, target.monster);
+        }
+    } else if (player.ability.name === "Heat Vision") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            return dist < closest.dist ? { monster, dist } : closest;
+        }, { monster: null, dist: Infinity });
+        if (target.monster) {
+            attack({ name: "Heat Vision", stats: { attack: 40, defense: 0 } }, target.monster);
+            log('Lasers!', 'damage');
+        }
+    } else if (player.ability.name === "Portal Gun") {
+        player.x = Math.floor(Math.random() * MAP_WIDTH);
+        player.y = Math.floor(Math.random() * MAP_HEIGHT);
+        log('Wubba Lubba Dub Dub! (Teleported)', 'info');
+        computeFov();
+    } else if (player.ability.name === "Zoinks") {
+        player.x = Math.floor(Math.random() * MAP_WIDTH);
+        player.y = Math.floor(Math.random() * MAP_HEIGHT);
+        heal();
+        log('Zoinks! You ran away.', 'info');
+        computeFov();
     } else {
         log('This ability is not yet implemented.', 'info');
     }
