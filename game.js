@@ -75,7 +75,11 @@ const summonTypes = {
     "Eidolon": { name: "Eidolon", stats: { hp: 100, maxHp: 100, attack: 20, defense: 10 }, symbol: 'E' },
     "Pet": { name: "Pet", stats: { hp: 40, maxHp: 40, attack: 8, defense: 4 }, symbol: 'p' },
     "Wolf": { name: "Wolf", stats: { hp: 40, maxHp: 40, attack: 8, defense: 4 }, symbol: 'w' },
-    "Skeleton": { name: "Skeleton", stats: { hp: 30, maxHp: 30, attack: 5, defense: 2 }, symbol: 's' }
+    "Skeleton": { name: "Skeleton", stats: { hp: 30, maxHp: 30, attack: 5, defense: 2 }, symbol: 's' },
+    "Cat": { name: "Grebbo", stats: { hp: 50, maxHp: 50, attack: 12, defense: 6 }, symbol: 'c' },
+    "Barbarian": { name: "Old Barbarian", stats: { hp: 60, maxHp: 60, attack: 10, defense: 5 }, symbol: 'b' },
+    "Luggage": { name: "The Luggage", stats: { hp: 200, maxHp: 200, attack: 20, defense: 20 }, symbol: 'L' },
+    "Feegle": { name: "Nac Mac Feegle", stats: { hp: 20, maxHp: 20, attack: 10, defense: 2 }, symbol: 'f' }
 };
 
 const trapTypes = {
@@ -415,6 +419,40 @@ const classes = {
             stats: { hp: 5000, attack: 500, defense: 5000 },
             ability: { name: "Zoinks", cooldown: 40, turn: 0 },
         }
+    },
+    "Discworld": {
+        "Rincewind": { "description": "A wizzard who is very good at running away.", "stats": { "hp": 100, "attack": 2, "defense": 2 }, "ability": { "name": "Run Away", "cooldown": 2, "turn": 0 } },
+        "Sam Vimes": { "description": "Commander of the City Watch.", "stats": { "hp": 120, "attack": 10, "defense": 10 }, "ability": { "name": "Knuckle Sandwich", "cooldown": 5, "turn": 0 } },
+        "Granny Weatherwax": { "description": "A powerful witch who uses headology.", "stats": { "hp": 90, "attack": 12, "defense": 8 }, "ability": { "name": "Headology", "cooldown": 6, "turn": 0 } },
+        "Nanny Ogg": { "description": "A witch with a very large cat.", "stats": { "hp": 110, "attack": 8, "defense": 8 }, "canSummon": true, "ability": { "name": "Grebbo", "cooldown": 10, "turn": 0 } },
+        "Death": { "description": "The anthropomorphic personification.", "stats": { "hp": 200, "attack": 20, "defense": 15 }, "ability": { "name": "SQUEAK", "cooldown": 15, "turn": 0 } },
+        "The Librarian": { "description": "Orangutan. Don't say the M-word.", "stats": { "hp": 130, "attack": 15, "defense": 10 }, "ability": { "name": "Oook!", "cooldown": 8, "turn": 0 } },
+        "Cohen the Barbarian": { "description": "Legendary hero, very old.", "stats": { "hp": 100, "attack": 12, "defense": 5 }, "canSummon": true, "ability": { "name": "Silver Horde", "cooldown": 12, "turn": 0 } },
+        "Captain Carrot": { "description": "Everyone likes him.", "stats": { "hp": 140, "attack": 14, "defense": 12 }, "ability": { "name": "Arrest", "cooldown": 6, "turn": 0 } },
+        "Susan Sto Helit": { "description": "Death's granddaughter.", "stats": { "hp": 100, "attack": 10, "defense": 8 }, "ability": { "name": "Poker", "cooldown": 5, "turn": 0 } },
+        "Twoflower": { "description": "The first tourist.", "stats": { "hp": 80, "attack": 1, "defense": 1 }, "canSummon": true, "ability": { "name": "The Luggage", "cooldown": 20, "turn": 0 } },
+        "Lord Vetinari": { "description": "The Patrician of Ankh-Morpork.", "stats": { "hp": 90, "attack": 5, "defense": 20 }, "ability": { "name": "Politics", "cooldown": 10, "turn": 0 } },
+        "Angua": { "description": "A werewolf in the Watch.", "stats": { "hp": 110, "attack": 12, "defense": 8 }, "ability": { "name": "Wolf Form", "cooldown": 10, "turn": 0 } },
+        "Detritus": { "description": "A troll sergeant.", "stats": { "hp": 200, "attack": 15, "defense": 15 }, "ability": { "name": "Piecemaker", "cooldown": 8, "turn": 0 } },
+        "Moist von Lipwig": { "description": "Postmaster General.", "stats": { "hp": 90, "attack": 6, "defense": 6 }, "ability": { "name": "Con", "cooldown": 5, "turn": 0 } },
+        "Tiffany Aching": { "description": "A young witch.", "stats": { "hp": 85, "attack": 8, "defense": 6 }, "canSummon": true, "ability": { "name": "Nac Mac Feegle", "cooldown": 8, "turn": 0 } }
+    },
+    "Warhammer": {
+        "Space Marine": { "description": "A super-soldier of the Imperium.", "stats": { "hp": 150, "attack": 15, "defense": 15 }, "ability": { "name": "Bolter Fire", "cooldown": 5, "turn": 0 } },
+        "Ork Boy": { "description": "WAAAGH!", "stats": { "hp": 140, "attack": 14, "defense": 8 }, "ability": { "name": "WAAAGH!", "cooldown": 8, "turn": 0 } },
+        "Eldar Farseer": { "description": "A powerful psychic seer.", "stats": { "hp": 90, "attack": 10, "defense": 8 }, "ability": { "name": "Psychic Storm", "cooldown": 6, "turn": 0 } },
+        "Chaos Marine": { "description": "Servant of the Dark Gods.", "stats": { "hp": 150, "attack": 16, "defense": 14 }, "ability": { "name": "Mark of Chaos", "cooldown": 10, "turn": 0 } },
+        "Tyranid": { "description": "The Great Devourer.", "stats": { "hp": 120, "attack": 14, "defense": 10 }, "ability": { "name": "Devour", "cooldown": 5, "turn": 0 } },
+        "Necron Warrior": { "description": "Ancient mechanical warrior.", "stats": { "hp": 160, "attack": 12, "defense": 16 }, "ability": { "name": "Reanimation Protocols", "cooldown": 20, "turn": 0 } },
+        "Sister of Battle": { "description": "Warrior of the Ecclesiarchy.", "stats": { "hp": 110, "attack": 12, "defense": 10 }, "ability": { "name": "Flamer", "cooldown": 6, "turn": 0 } },
+        "Tech-Priest": { "description": "Servant of the Omnissiah.", "stats": { "hp": 100, "attack": 8, "defense": 12 }, "ability": { "name": "Rite of Repair", "cooldown": 10, "turn": 0 } },
+        "Commissar": { "description": "Enforcer of discipline.", "stats": { "hp": 100, "attack": 10, "defense": 8 }, "ability": { "name": "Execute", "cooldown": 15, "turn": 0 } },
+        "Grey Knight": { "description": "Daemon hunter.", "stats": { "hp": 160, "attack": 18, "defense": 16 }, "ability": { "name": "Nemesis Force", "cooldown": 8, "turn": 0 } },
+        "Slayer": { "description": "Seeks a glorious death.", "stats": { "hp": 120, "attack": 20, "defense": 0 }, "ability": { "name": "Deathblow", "cooldown": 5, "turn": 0 } },
+        "Warrior Priest": { "description": "Hammer of Sigmar.", "stats": { "hp": 130, "attack": 14, "defense": 12 }, "ability": { "name": "Sigmar's Wrath", "cooldown": 8, "turn": 0 } },
+        "Witch Hunter": { "description": "Purges heresy.", "stats": { "hp": 110, "attack": 12, "defense": 8 }, "ability": { "name": "Accusation", "cooldown": 6, "turn": 0 } },
+        "Skaven": { "description": "Rat-man assassin.", "stats": { "hp": 80, "attack": 12, "defense": 4 }, "ability": { "name": "Doomrocket", "cooldown": 10, "turn": 0 } },
+        "Custodes": { "description": "Guardian of the Emperor.", "stats": { "hp": 250, "attack": 25, "defense": 25 }, "ability": { "name": "Guardian Spear", "cooldown": 12, "turn": 0 } }
     }
 };
 
@@ -1471,6 +1509,197 @@ function useAbility() {
         heal();
         log('Zoinks! You ran away.', 'info');
         computeFov();
+    } else if (player.ability.name === "Run Away") {
+        player.x = Math.floor(Math.random() * MAP_WIDTH);
+        player.y = Math.floor(Math.random() * MAP_HEIGHT);
+        player.stats.defense += 5;
+        log('Rincewind ran away very fast! (+Def)', 'info');
+        computeFov();
+        setTimeout(() => player.stats.defense -= 5, 5000);
+    } else if (player.ability.name === "Knuckle Sandwich") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            return dist < closest.dist ? { monster, dist } : closest;
+        }, { monster: null, dist: Infinity });
+        if (target.monster && target.dist <= 1.5) {
+            attack({ name: "Knuckle Sandwich", stats: { attack: player.stats.attack * 1.5, defense: 0 } }, target.monster);
+            target.monster.stunned = 3;
+            log('Knuckle Sandwich served!', 'damage');
+        }
+    } else if (player.ability.name === "Headology") {
+        monsters.forEach(m => {
+            if (Math.hypot(m.x - player.x, m.y - player.y) <= 8) {
+                m.fleeing = 5;
+            }
+        });
+        log('I aten\'t dead! (Enemies flee)', 'info');
+    } else if (player.ability.name === "Grebbo") {
+        summon("Cat");
+    } else if (player.ability.name === "SQUEAK") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            return dist < closest.dist ? { monster, dist } : closest;
+        }, { monster: null, dist: Infinity });
+        if (target.monster) {
+            attack({ name: "DEATH", stats: { attack: 100, defense: 0 } }, target.monster);
+            log('SQUEAK.', 'death');
+        }
+    } else if (player.ability.name === "Oook!") {
+        player.stats.attack += 20;
+        player.stats.defense += 5;
+        log('Oook! (Berserk)', 'damage');
+        setTimeout(() => { player.stats.attack -= 20; player.stats.defense -= 5; log('Rationality returns.', 'info'); }, 8000);
+    } else if (player.ability.name === "Silver Horde") {
+        summon("Barbarian");
+    } else if (player.ability.name === "Arrest") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            return dist < closest.dist ? { monster, dist } : closest;
+        }, { monster: null, dist: Infinity });
+        if (target.monster) {
+            target.monster.stunned = 5;
+            log('You are under arrest!', 'info');
+        }
+    } else if (player.ability.name === "Poker") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            return dist < closest.dist ? { monster, dist } : closest;
+        }, { monster: null, dist: Infinity });
+        if (target.monster) {
+            attack({ name: "Poker", stats: { attack: player.stats.attack * 2, defense: 0 } }, target.monster);
+            target.monster.stunned = 2;
+        }
+    } else if (player.ability.name === "The Luggage") {
+        summon("Luggage");
+    } else if (player.ability.name === "Politics") {
+        monsters.forEach(m => {
+            m.fleeing = 2; // Confusion/hesitation
+            m.stats.attack = Math.max(1, m.stats.attack - 2);
+        });
+        log('Don\'t let me detain you. (Enemies debuffed)', 'info');
+    } else if (player.ability.name === "Wolf Form") {
+        player.stats.attack += 10;
+        player.stats.maxHp += 20;
+        player.stats.hp += 20;
+        log('Wolf form!', 'heal');
+    } else if (player.ability.name === "Piecemaker") {
+        monsters.forEach(m => {
+            if (Math.hypot(m.x - player.x, m.y - player.y) <= 3) {
+                attack({ name: "Piecemaker", stats: { attack: 40, defense: 0 } }, m);
+            }
+        });
+        log('It works! (Area Damage)', 'damage');
+    } else if (player.ability.name === "Con") {
+        player.stats.hp = Math.min(player.stats.maxHp, player.stats.hp + 10);
+        log('You talked your way out of it. (+10 HP)', 'heal');
+    } else if (player.ability.name === "Nac Mac Feegle") {
+        summon("Feegle");
+        summon("Feegle");
+        summon("Feegle");
+        log('Crivens!', 'info');
+    }
+    // Warhammer Abilities
+    else if (player.ability.name === "Bolter Fire") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            return dist < closest.dist ? { monster, dist } : closest;
+        }, { monster: null, dist: Infinity });
+        if (target.monster) {
+            attack({ name: "Bolter", stats: { attack: 25, defense: 0 } }, target.monster);
+        }
+    } else if (player.ability.name === "WAAAGH!") {
+        player.stats.attack += 15;
+        log('WAAAGH!!!', 'damage');
+        setTimeout(() => { player.stats.attack -= 15; }, 5000);
+    } else if (player.ability.name === "Psychic Storm") {
+        monsters.forEach(m => {
+            if (Math.hypot(m.x - player.x, m.y - player.y) <= 4) {
+                attack({ name: "Psychic Storm", stats: { attack: 15, defense: 0 } }, m);
+            }
+        });
+        log('The warp overtakes them!', 'damage');
+    } else if (player.ability.name === "Mark of Chaos") {
+        const roll = Math.random();
+        if (roll < 0.33) { player.stats.attack += 5; log('Khorne grants strength!', 'damage'); }
+        else if (roll < 0.66) { player.stats.defense += 5; log('Nurgle grants resilience!', 'heal'); }
+        else { player.stats.hp = Math.min(player.stats.maxHp, player.stats.hp + 20); log('Slaanesh grants pleasure (healing)!', 'heal'); }
+    } else if (player.ability.name === "Devour") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            return dist < closest.dist ? { monster, dist } : closest;
+        }, { monster: null, dist: Infinity });
+        if (target.monster && target.dist <= 1.5) {
+            attack({ name: "Devour", stats: { attack: 20, defense: 0 } }, target.monster);
+            player.stats.hp = Math.min(player.stats.maxHp, player.stats.hp + 15);
+            log('Om nom nom.', 'heal');
+        }
+    } else if (player.ability.name === "Reanimation Protocols") {
+        player.stats.hp = player.stats.maxHp;
+        log('Reanimation Protocols engaged.', 'heal');
+    } else if (player.ability.name === "Flamer") {
+        monsters.forEach(m => {
+            if (Math.hypot(m.x - player.x, m.y - player.y) <= 3) {
+                attack({ name: "Flamer", stats: { attack: 20, defense: 0 } }, m);
+            }
+        });
+        log('Purge the heretic!', 'damage');
+    } else if (player.ability.name === "Rite of Repair") {
+        heal();
+        player.stats.defense += 5;
+        log('Praise the Omnissiah.', 'heal');
+    } else if (player.ability.name === "Execute") {
+        if (summons.length > 0) {
+            const s = summons.pop();
+            log(`Executed ${s.name} for morale!`, 'death');
+            player.stats.attack += 20;
+            setTimeout(() => player.stats.attack -= 20, 10000);
+        } else {
+            player.stats.attack += 5;
+            log('Inspiration!', 'damage');
+        }
+    } else if (player.ability.name === "Nemesis Force") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            return dist < closest.dist ? { monster, dist } : closest;
+        }, { monster: null, dist: Infinity });
+        if (target.monster) {
+            attack({ name: "Nemesis Weapon", stats: { attack: 50, defense: 0 } }, target.monster);
+        }
+    } else if (player.ability.name === "Deathblow") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            return dist < closest.dist ? { monster, dist } : closest;
+        }, { monster: null, dist: Infinity });
+        if (target.monster) {
+            attack({ name: "Deathblow", stats: { attack: player.stats.hp < 50 ? 100 : 40, defense: 0 } }, target.monster);
+        }
+    } else if (player.ability.name === "Sigmar's Wrath") {
+        monsters.forEach(m => {
+            if (Math.hypot(m.x - player.x, m.y - player.y) <= 2) {
+                attack({ name: "Hammer", stats: { attack: 30, defense: 0 } }, m);
+            }
+        });
+        log('For Sigmar!', 'damage');
+    } else if (player.ability.name === "Accusation") {
+        const target = monsters.reduce((closest, monster) => {
+            const dist = Math.hypot(monster.x - player.x, monster.y - player.y);
+            return dist < closest.dist ? { monster, dist } : closest;
+        }, { monster: null, dist: Infinity });
+        if (target.monster) {
+            target.monster.stats.defense = 0;
+            log('HERETIC!', 'info');
+        }
+    } else if (player.ability.name === "Doomrocket") {
+        monsters.forEach(m => {
+            attack({ name: "Doomrocket", stats: { attack: 40, defense: 0 } }, m);
+        });
+        player.stats.hp -= 20; // Backfire
+        log('Yes-yes! Boom!', 'damage');
+    } else if (player.ability.name === "Guardian Spear") {
+        player.stats.attack += 10;
+        player.stats.defense += 10;
+        log('For the Emperor!', 'heal');
+        setTimeout(() => { player.stats.attack -= 10; player.stats.defense -= 10; }, 8000);
     } else {
         log('This ability is not yet implemented.', 'info');
     }
