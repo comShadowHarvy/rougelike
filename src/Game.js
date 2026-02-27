@@ -10,6 +10,7 @@ const Player = require('./entities/Player');
 const classes = require('./data/classes');
 const { selectOption } = require('./utils/InputUtils');
 const { findPath } = require('./utils/Pathfinding');
+const { saveGame, loadGame } = require('./utils/saveLoad');
 
 class Game {
     constructor() {
@@ -48,7 +49,7 @@ class Game {
         this.mapGenerator = new MapGenerator(this.mapWidth, this.mapHeight);
         this.fov = new FOV(this.mapWidth, this.mapHeight);
 
-        console.log("Welcome to the Roguelike game!");
+        console.log('Welcome to the Roguelike game!');
         await this.characterCreation();
     }
 
@@ -66,7 +67,7 @@ class Game {
 
         const className = classNames[classIndex];
         const classData = classes[category][className];
-        this.player = new Player(classData, "Player");
+        this.player = new Player(classData, 'Player');
 
         this.start();
     }
@@ -74,7 +75,7 @@ class Game {
     start() {
         this.generateLevel();
         this.fov.compute(this.map, this.player);
-        if (this.player.canSummon) this.abilitySystem.summon(this, "Troll"); // Or logic to summon default? Original: summon() -> trolls
+        if (this.player.canSummon) this.abilitySystem.summon(this, 'Troll'); // Or logic to summon default? Original: summon() -> trolls
         // Wait, original summon() default was "Troll".
 
         this.setupInput();
@@ -108,47 +109,55 @@ class Game {
     }
 
     setupInput() {
-        readline.emitKeypressEvents(process.stdin);
-        if (process.stdin.isTTY) {
-            process.stdin.setRawMode(true);
-        }
+        this.renderer.screen.key(['escape', 'C-c'], (ch, key) => {
+            return process.exit(0);
+        });
 
-        process.stdin.on('keypress', (str, key) => {
+        this.renderer.screen.on('keypress', (ch, key) => {
             if (this.gameEnded || this.autoCombat) {
-                // If autoCombat, we might want to allow interrupt?
                 if (key && key.name === 'c') {
                     this.autoCombat = !this.autoCombat;
-                    return; // Handled in loop
-                }
-                if (key && key.ctrl && key.name === 'c') {
-                    process.exit();
+                    return;
                 }
                 return;
             }
-            this.handleInput(str, key);
+            this.handleInput(ch, key);
         });
     }
 
     handleInput(str, key) {
-        if (!key) return;
-        if (key.ctrl && key.name === 'c') {
-            process.exit();
-        }
+        if (!key && !str) return;
+        const keyName = key ? key.name : str;
+        const val = str;
 
         let dx = 0, dy = 0;
-        if (key.name === 'w') dy = -1;
-        else if (key.name === 's') dy = 1;
-        else if (key.name === 'a') dx = -1;
-        else if (key.name === 'd') dy = 1;
-        else if (key.name === 'h') this.player.heal(20); // Basic heal? Original: heal() -> +20
-        else if (key.name === 'u') this.abilitySystem.summon(this, "Troll");
-        else if (key.name === 'c') { this.autoCombat = !this.autoCombat; if (this.autoCombat) this.autoCombatLoop(); }
-        else if (key.name === 'x') this.autoHeal = !this.autoHeal;
-        else if (key.name === 'e') this.equip();
-        else if (key.name === 'b') this.abilitySystem.useAbility(this);
-        else if (key.name === 'i') this.showInventory();
-        else if (str === '>') this.changeLevel(1);
-        else if (str === '<') this.changeLevel(-1);
+        if (keyName === 'up' || val === 'w') dy = -1;
+        else if (keyName === 'down' || val === 's') dy = 1;
+        else if (keyName === 'left' || val === 'a') dx = -1;
+        else if (keyName === 'right' || val === 'd') dx = 1;
+        else if (keyName === 'h') this.player.heal(20);
+        else if (keyName === 'u') this.abilitySystem.summon(this, 'Troll');
+        else if (keyName === 'c') { this.autoCombat = !this.autoCombat; if (this.autoCombat) this.autoCombatLoop(); }
+        else if (keyName === 'x') this.autoHeal = !this.autoHeal;
+        else if (keyName === 'e') this.equip();
+        else if (keyName === 'b') this.abilitySystem.useAbility(this);
+        else if (keyName === 'i') this.showInventory();
+        else if (val === 'S' || keyName === 'S') {
+            if (saveGame(this)) this.logger.log('Game saved successfully.', 'info');
+            else this.logger.log('Failed to save game.', 'damage');
+        }
+        else if (val === 'L' || keyName === 'L') {
+            const state = loadGame();
+            if (state) {
+                Object.assign(this, state);
+                this.logger.log('Game loaded successfully.', 'info');
+                this.draw();
+            } else {
+                this.logger.log('No save file found or failed to load.', 'damage');
+            }
+        }
+        else if (val === '>' || keyName === '>') this.changeLevel(1);
+        else if (val === '<' || keyName === '<') this.changeLevel(-1);
 
         if (dx !== 0 || dy !== 0) {
             this.movePlayer(dx, dy);
@@ -270,38 +279,7 @@ class Game {
 
         // If manual equip (key 'e')
         if (itemIndex === -1 && !this.autoCombat) {
-            // Stop raw mode for a bit?
-            // The original used process.stdin.once('data').
-            // But we are in raw mode 'keypress' handler.
-            // We need to pause keypress handler?
-            // original game.js: "itemIndex = await new Promise..."
-            // It works because 'once' listener will fire along with 'keypress'
-            // But we need to handle it gracefully.
-            // For simplicity, let's just log inventory and ask for index
-
-            console.clear();
-            console.log('Your inventory:');
-            this.player.inventory.forEach((item, index) => {
-                console.log(`${index + 1}. ${item.name}`);
-            });
-
-            // Simple simplified input reading
-            // Note: In real TUI refactor, we'd use a proper UI layer.
-            // For now, let's just assume we can't easily do blocking input inside the keypress loop
-            // without complex state management.
-            // BUT, the original game did it.
-            // Let's rely on the original logic concept but cleaned up.
-
-            // WE can't easily wait for data event inside the event handler synchronously without Promises.
-            // BUT handleInput is synchronous.
-            // Making handleInput async might work but events might pile up.
-
-            // Hack: Just pick first weapon/armor? No, user wants choice.
-            // Let's implement non-blocking equip or just skip visual menu for now?
-            // Or, we set a state 'EQUIPPING'.
-            // Let's skip complex UI menu refactor for now and just log "Inventory not interactive in this version"
-            // OR, better:
-            this.logger.log("Inventory system pending TUI update. Auto-equipping best gear.", "info");
+            this.logger.log('Inventory system pending TUI update. Auto-equipping best gear.', 'info');
             this.autoEquip();
             return;
         }
@@ -348,16 +326,7 @@ class Game {
     }
 
     showInventory() {
-        console.clear();
-        console.log('Your inventory:');
-        this.player.inventory.forEach((item, index) => {
-            console.log(`${index + 1}. ${item.name}`);
-        });
-        console.log("Press any key to resume...");
-        // Wait for key?
-        // Again, state machine is needed for true interactivity.
-        // Just logging it to game log for now?
-        this.logger.log("Inventory listed in console (scroll up if possible).", 'info');
+        this.logger.log('Inventory is visible in the sidebar.', 'info');
     }
 
     autoCombatLoop() {

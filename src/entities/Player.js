@@ -1,5 +1,5 @@
 class Player {
-    constructor(classData, name = "Player") {
+    constructor(classData, name = 'Player') {
         this.name = name;
         this.description = classData.description;
         this.baseStats = { ...classData.stats };

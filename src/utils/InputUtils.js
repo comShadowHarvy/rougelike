@@ -12,7 +12,7 @@ async function selectOption(promptText, options) {
         }
 
         if (options.length > pageSize) {
-            console.log("0. Next Page");
+            console.log('0. Next Page');
         }
 
         const selectedIndex = await new Promise(resolve => {

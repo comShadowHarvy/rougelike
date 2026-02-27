@@ -79,8 +79,7 @@ class AISystem {
                 return closest;
             }, { monster: null, dist: Infinity });
 
-            let dx = 0;
-            let dy = 0;
+            let dx, dy;
 
             if (nearestMonster.monster && nearestMonster.dist <= 10) {
                 dx = Math.sign(nearestMonster.monster.x - summon.x);

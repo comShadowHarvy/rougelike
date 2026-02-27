@@ -22,7 +22,7 @@ class MapGenerator {
                     map[y][x].walkable = true;
                 }
             }
-            const bossType = level % 15 === 0 ? "Dragon" : "Ogre";
+            const bossType = level % 15 === 0 ? 'Dragon' : 'Ogre';
             const bossData = bossTypes[bossType];
             const boss = new Monster(bossData, Math.floor(this.width / 2), Math.floor(this.height / 2));
             monsters.push(boss);
@@ -31,7 +31,7 @@ class MapGenerator {
                 const cx = boss.x + 1;
                 const cy = boss.y;
                 map[cy][cx].char = '*'; // Legendary Chest
-                map[cy][cx].items.push({ name: "Excalibur", type: "weapons", ...items.legendary["Excalibur"] });
+                map[cy][cx].items.push({ name: 'Excalibur', type: 'weapons', ...items.legendary['Excalibur'] });
             }
 
         } else {

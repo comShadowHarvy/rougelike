@@ -17,12 +17,12 @@ class Combat {
         }
 
         // Offensive modifiers
-        if (player.ability?.name === "Harambe" && defender.name === "Troll" && attacker === player) {
+        if (player.ability?.name === 'Harambe' && defender.name === 'Troll' && attacker === player) {
             player.stats.attack += 10;
             this.logger.log('Harambe is enraged!', 'heal');
         }
 
-        if (player.ability?.name === "Distracted Boyfriend" && attacker === player && Math.random() < 0.5) {
+        if (player.ability?.name === 'Distracted Boyfriend' && attacker === player && Math.random() < 0.5) {
             this.logger.log('You were distracted and missed!', 'info');
             return;
         }
