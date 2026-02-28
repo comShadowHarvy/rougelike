@@ -498,6 +498,36 @@ class AbilitySystem {
             player.stats.defense += 10;
             this.logger.log('For the Emperor!', 'heal');
             setTimeout(() => { player.stats.attack -= 10; player.stats.defense -= 10; }, 8000);
+        } else if (habilidad === 'Life Drain') {
+            const target = findNearestMonster();
+            if (target.monster) {
+                const dmg = 15;
+                this.combat.attack({ name: 'Life Drain', stats: { attack: dmg, defense: 0 } }, target.monster, gameState);
+                player.stats.hp = Math.min(player.stats.maxHp, player.stats.hp + dmg);
+                this.logger.log(`Life Drain: dealt ${dmg} damage and healed ${dmg} HP.`, 'heal');
+            } else {
+                this.logger.log('Life Drain: no target in sight.', 'info');
+            }
+        } else if (habilidad === 'Flame Rebirth') {
+            const target = findNearestMonster();
+            if (target.monster) {
+                this.combat.attack({ name: 'Flame Rebirth', stats: { attack: 20, defense: 0 } }, target.monster, gameState);
+                // Heal player for half the damage dealt
+                const healAmount = 10;
+                player.stats.hp = Math.min(player.stats.maxHp, player.stats.hp + healAmount);
+                this.logger.log(`Flame Rebirth: dealt 20 fire damage and healed ${healAmount} HP.`, 'heal');
+            } else {
+                this.logger.log('Flame Rebirth: no target in sight.', 'info');
+            }
+        } else if (habilidad === 'Tentacle Crush') {
+            monsters.forEach(m => {
+                const dist = Math.hypot(m.x - player.x, m.y - player.y);
+                if (dist <= 3) {
+                    this.combat.attack({ name: 'Tentacle Crush', stats: { attack: 15, defense: 0 } }, m, gameState);
+                    m.stunned = 2; // stun for 2 turns
+                }
+            });
+            this.logger.log('Tentacle Crush: area damage and stun applied.', 'info');
         } else {
             this.logger.log('This ability is not yet implemented.', 'info');
         }

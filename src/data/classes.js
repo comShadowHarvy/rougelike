@@ -363,7 +363,24 @@ const classes = {
         'Witch Hunter': { 'description': 'Purges heresy.', 'stats': { 'hp': 110, 'attack': 12, 'defense': 8 }, 'ability': { 'name': 'Accusation', 'cooldown': 6, 'turn': 0 } },
         'Skaven': { 'description': 'Rat-man assassin.', 'stats': { 'hp': 80, 'attack': 12, 'defense': 4 }, 'ability': { 'name': 'Doomrocket', 'cooldown': 10, 'turn': 0 } },
         'Custodes': { 'description': 'Guardian of the Emperor.', 'stats': { 'hp': 250, 'attack': 25, 'defense': 25 }, 'ability': { 'name': 'Guardian Spear', 'cooldown': 12, 'turn': 0 } }
-    }
+    },
+    'Mythic': {
+        'Phoenix': {
+            description: 'Reborn from ashes, deals fire damage.',
+            stats: { hp: 150, attack: 20, defense: 10 },
+            ability: { name: 'Flame Rebirth', cooldown: 12, turn: 0 },
+        },
+        'Kraken': {
+            description: 'Giant sea monster with tentacles.',
+            stats: { hp: 300, attack: 25, defense: 15 },
+            ability: { name: 'Tentacle Crush', cooldown: 10, turn: 0 },
+        },
+        'Lich': {
+            description: 'Undead sorcerer that drains life.',
+            stats: { hp: 120, attack: 15, defense: 5 },
+            ability: { name: 'Life Drain', cooldown: 8, turn: 0 },
+        },
+    },
 };
 
 module.exports = classes;
