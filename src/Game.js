@@ -59,11 +59,14 @@ class Game {
 
         const category = categories[categoryIndex];
         const classNames = Object.keys(classes[category]);
-        const classDisplayList = classNames.map(className =>
-            `${className} - ${classes[category][className].description}`
+        const classDisplayList = classNames.map(
+            (className) => `${className} - ${classes[category][className].description}`,
         );
 
-        const classIndex = await selectOption(`Choose your class in the ${category} category:`, classDisplayList);
+        const classIndex = await selectOption(
+            `Choose your class in the ${category} category:`,
+            classDisplayList,
+        );
 
         const className = classNames[classIndex];
         const classData = classes[category][className];
@@ -101,7 +104,7 @@ class Game {
         // This refactor computed MAP_WIDTH once.
         // Let's assume summons follow player or teleport to him.
         if (this.summons.length > 0) {
-            this.summons.forEach(s => {
+            this.summons.forEach((s) => {
                 s.x = this.player.x;
                 s.y = this.player.y; // Stacked on player?
             });
@@ -130,23 +133,25 @@ class Game {
         const keyName = key ? key.name : str;
         const val = str;
 
-        let dx = 0, dy = 0;
+        let dx = 0,
+            dy = 0;
         if (keyName === 'up' || val === 'w') dy = -1;
         else if (keyName === 'down' || val === 's') dy = 1;
         else if (keyName === 'left' || val === 'a') dx = -1;
         else if (keyName === 'right' || val === 'd') dx = 1;
         else if (keyName === 'h') this.player.heal(20);
         else if (keyName === 'u') this.abilitySystem.summon(this, 'Troll');
-        else if (keyName === 'c') { this.autoCombat = !this.autoCombat; if (this.autoCombat) this.autoCombatLoop(); }
-        else if (keyName === 'x') this.autoHeal = !this.autoHeal;
+        else if (keyName === 'c') {
+            this.autoCombat = !this.autoCombat;
+            if (this.autoCombat) this.autoCombatLoop();
+        } else if (keyName === 'x') this.autoHeal = !this.autoHeal;
         else if (keyName === 'e') this.equip();
         else if (keyName === 'b') this.abilitySystem.useAbility(this);
         else if (keyName === 'i') this.showInventory();
         else if (val === 'S' || keyName === 'S') {
             if (saveGame(this)) this.logger.log('Game saved successfully.', 'info');
             else this.logger.log('Failed to save game.', 'damage');
-        }
-        else if (val === 'L' || keyName === 'L') {
+        } else if (val === 'L' || keyName === 'L') {
             const state = loadGame();
             if (state) {
                 Object.assign(this, state);
@@ -155,8 +160,7 @@ class Game {
             } else {
                 this.logger.log('No save file found or failed to load.', 'damage');
             }
-        }
-        else if (val === '>' || keyName === '>') this.changeLevel(1);
+        } else if (val === '>' || keyName === '>') this.changeLevel(1);
         else if (val === '<' || keyName === '<') this.changeLevel(-1);
 
         if (dx !== 0 || dy !== 0) {
@@ -198,6 +202,76 @@ class Game {
 
         const tile = this.map[newY][newX];
 
+        // Handle terrain interactions
+        if (tile.terrain) {
+            const terrain = tile.terrain;
+
+            // Handle doors
+            if (terrain.type === 'door') {
+                if (!terrain.open) {
+                    terrain.open = true;
+                    terrain.char = '/';
+                    terrain.walkable = true;
+                    tile.char = '/';
+                    tile.walkable = true;
+                    this.logger.log('You open the door.', 'info');
+                    this.ai.moveMonsters(this);
+                    this.fov.compute(this.map, this.player);
+                    return;
+                }
+            }
+
+            // Handle lava damage
+            if (terrain.type === 'lava') {
+                this.player.takeDamage(terrain.damage || 20);
+                this.logger.log(`The lava burns you for ${terrain.damage || 20} damage!`, 'damage');
+                if (this.player.stats.hp <= 0) {
+                    this.logger.log('You died in the lava! Game Over.', 'death');
+                    this.gameEnded = true;
+                    process.exit();
+                }
+            }
+
+            // Handle water (need to swim)
+            if (terrain.type === 'water' && !terrain.swimable) {
+                this.logger.log('The water is too deep. You need to find another way.', 'info');
+                return;
+            }
+
+            // Handle fountain healing
+            if (terrain.type === 'fountain') {
+                const healAmount = terrain.heal || 10;
+                this.player.heal(healAmount);
+                this.logger.log(`You drink from the fountain and heal ${healAmount} HP.`, 'heal');
+            }
+
+            // Handle altar
+            if (terrain.type === 'altar') {
+                this.logger.log('You found an altar. Praying...', 'info');
+                if (Math.random() < 0.5) {
+                    const buff = Math.floor(Math.random() * 3) + 1;
+                    if (buff === 1) {
+                        this.player.stats.maxHp += 10;
+                        this.player.stats.hp += 10;
+                        this.logger.log('The altar blesses you! Max HP increased by 10.', 'heal');
+                    } else if (buff === 2) {
+                        this.player.stats.strength += 2;
+                        this.logger.log('The altar blesses you! Strength increased by 2.', 'heal');
+                    } else {
+                        this.player.stats.dexterity += 2;
+                        this.logger.log('The altar blesses you! Dexterity increased by 2.', 'heal');
+                    }
+                } else {
+                    this.logger.log('The altar remains silent...', 'info');
+                }
+            }
+
+            // Handle rubble (slows movement)
+            if (terrain.type === 'rubble') {
+                this.logger.log('The rubble slows your movement.', 'info');
+            }
+        }
+
         if (tile.char === '~' || tile.char === '?') {
             const itemsOnTile = tile.items;
             if (itemsOnTile.length > 0) {
@@ -220,7 +294,7 @@ class Game {
             }
         }
 
-        const monster = this.monsters.find(m => m.x === newX && m.y === newY);
+        const monster = this.monsters.find((m) => m.x === newX && m.y === newY);
         if (monster) {
             this.combat.attack(this.player, monster, this);
         } else if (tile.walkable) {
@@ -279,7 +353,10 @@ class Game {
 
         // If manual equip (key 'e')
         if (itemIndex === -1 && !this.autoCombat) {
-            this.logger.log('Inventory system pending TUI update. Auto-equipping best gear.', 'info');
+            this.logger.log(
+                'Inventory system pending TUI update. Auto-equipping best gear.',
+                'info',
+            );
             this.autoEquip();
             return;
         }
@@ -375,13 +452,22 @@ class Game {
             }
         } else {
             // Attack nearest
-            const nearestMonster = this.monsters.reduce((closest, monster) => {
-                const dist = Math.hypot(monster.x - this.player.x, monster.y - this.player.y);
-                return dist < closest.dist ? { monster, dist } : closest;
-            }, { monster: null, dist: Infinity });
+            const nearestMonster = this.monsters.reduce(
+                (closest, monster) => {
+                    const dist = Math.hypot(monster.x - this.player.x, monster.y - this.player.y);
+                    return dist < closest.dist ? { monster, dist } : closest;
+                },
+                { monster: null, dist: Infinity },
+            );
 
             if (nearestMonster.monster) {
-                const path = findPath(this.player, nearestMonster.monster, this.map, this.mapWidth, this.mapHeight);
+                const path = findPath(
+                    this.player,
+                    nearestMonster.monster,
+                    this.map,
+                    this.mapWidth,
+                    this.mapHeight,
+                );
                 if (path.length > 0) {
                     const nextStep = path[0];
                     const dx = nextStep.x - this.player.x;

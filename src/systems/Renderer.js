@@ -4,7 +4,7 @@ class Renderer {
     constructor() {
         this.screen = blessed.screen({
             smartCSR: true,
-            title: 'Roguelike TUI'
+            title: 'Roguelike TUI',
         });
 
         this.mapBox = blessed.box({
@@ -14,7 +14,7 @@ class Renderer {
             height: '100%',
             content: '',
             border: { type: 'line' },
-            style: { border: { fg: '#f0f0f0' } }
+            style: { border: { fg: '#f0f0f0' } },
         });
 
         this.sidebar = blessed.box({
@@ -23,7 +23,7 @@ class Renderer {
             width: '30%',
             height: '100%',
             border: { type: 'line' },
-            style: { border: { fg: '#f0f0f0' } }
+            style: { border: { fg: '#f0f0f0' } },
         });
 
         this.statsBox = blessed.box({
@@ -33,7 +33,7 @@ class Renderer {
             width: '100%-2',
             height: '50%',
             content: 'Stats loading...',
-            tags: false
+            tags: false,
         });
 
         this.logBox = blessed.box({
@@ -43,7 +43,7 @@ class Renderer {
             width: '100%-2',
             height: '50%',
             content: 'Logs loading...',
-            tags: false
+            tags: false,
         });
 
         this.screen.append(this.mapBox);
@@ -63,9 +63,9 @@ class Renderer {
             let row = '';
             for (let x = 0; x < mapWidth; x++) {
                 const tile = map[y][x];
-                const monster = monsters.find(m => m.x === x && m.y === y);
-                const summon = summons.find(s => s.x === x && s.y === y);
-                const corpse = corpses.find(c => c.x === x && c.y === y);
+                const monster = monsters.find((m) => m.x === x && m.y === y);
+                const summon = summons.find((s) => s.x === x && s.y === y);
+                const corpse = corpses.find((c) => c.x === x && c.y === y);
 
                 if (!tile.explored) {
                     row += ' ';
@@ -82,6 +82,8 @@ class Renderer {
                         row += `\x1b[31m${corpse.symbol}\x1b[0m`;
                     } else if (tile.trap && tile.trap.revealed) {
                         row += `${tile.trap.color}${tile.trap.symbol}\x1b[0m`;
+                    } else if (tile.terrain && tile.terrain.color) {
+                        row += `${tile.terrain.color}${tile.char}\x1b[0m`;
                     } else {
                         row += tile.char;
                     }
@@ -111,7 +113,7 @@ Wpn: ${player.equipment.weapon?.name || 'None'}
 Arm: ${player.equipment.armor?.name || 'None'}
 
 Inventory: 
-${player.inventory.map(item => item.name).join(', ') || 'Empty'}
+${player.inventory.map((item) => item.name).join(', ') || 'Empty'}
 
 Auto-Combat: ${autoCombat ? 'On' : 'Off'}
 Auto-Heal: ${autoHeal ? 'On' : 'Off'}`;

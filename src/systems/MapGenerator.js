@@ -1,6 +1,7 @@
 const items = require('../data/items');
 const { monsterTypes, bossTypes } = require('../data/monsters');
 const trapTypes = require('../data/traps');
+const terrainTypes = require('../data/terrain');
 const Monster = require('../entities/Monster');
 
 class MapGenerator {
@@ -10,7 +11,21 @@ class MapGenerator {
     }
 
     generate(level, player) {
-        const map = Array(this.height).fill(0).map(() => Array(this.width).fill(null).map(() => ({ char: '#', walkable: false, visible: false, explored: false, items: [], trap: null })));
+        const map = Array(this.height)
+            .fill(0)
+            .map(() =>
+                Array(this.width)
+                    .fill(null)
+                    .map(() => ({
+                        char: '#',
+                        walkable: false,
+                        visible: false,
+                        explored: false,
+                        items: [],
+                        trap: null,
+                        terrain: null,
+                    })),
+            );
         const monsters = [];
         const corpses = [];
 
@@ -24,16 +39,23 @@ class MapGenerator {
             }
             const bossType = level % 15 === 0 ? 'Dragon' : 'Ogre';
             const bossData = bossTypes[bossType];
-            const boss = new Monster(bossData, Math.floor(this.width / 2), Math.floor(this.height / 2));
+            const boss = new Monster(
+                bossData,
+                Math.floor(this.width / 2),
+                Math.floor(this.height / 2),
+            );
             monsters.push(boss);
 
             if (level % 15 === 0) {
                 const cx = boss.x + 1;
                 const cy = boss.y;
                 map[cy][cx].char = '*'; // Legendary Chest
-                map[cy][cx].items.push({ name: 'Excalibur', type: 'weapons', ...items.legendary['Excalibur'] });
+                map[cy][cx].items.push({
+                    name: 'Excalibur',
+                    type: 'weapons',
+                    ...items.legendary['Excalibur'],
+                });
             }
-
         } else {
             // Regular level generation
             let x = Math.floor(this.width / 2);
@@ -44,14 +66,20 @@ class MapGenerator {
                 map[y][x].char = '.';
                 map[y][x].walkable = true;
                 const direction = Math.floor(Math.random() * 4);
-                if (direction === 0 && y > 1) y--; // Up
-                else if (direction === 1 && y < this.height - 2) y++; // Down
-                else if (direction === 2 && x > 1) x--; // Left
+                if (direction === 0 && y > 1)
+                    y--; // Up
+                else if (direction === 1 && y < this.height - 2)
+                    y++; // Down
+                else if (direction === 2 && x > 1)
+                    x--; // Left
                 else if (direction === 3 && x < this.width - 2) x++; // Right
             }
 
+            // Place terrain features
+            this.placeTerrain(map);
+
             // Place chests
-            const numChests = Math.floor(this.width * this.height / 200);
+            const numChests = Math.floor((this.width * this.height) / 200);
             for (let i = 0; i < numChests; i++) {
                 let placedChest = false;
                 let attempts = 0;
@@ -63,26 +91,34 @@ class MapGenerator {
                         map[cy][cx].char = '~'; // Chest
                         const itemCategory = Math.random();
                         let itemType;
-                        if (itemCategory < 0.4) { // 40% chance for weapon
+                        if (itemCategory < 0.4) {
+                            // 40% chance for weapon
                             itemType = 'weapons';
-                        } else if (itemCategory < 0.8) { // 40% chance for armor
+                        } else if (itemCategory < 0.8) {
+                            // 40% chance for armor
                             itemType = 'armor';
-                        } else if (itemCategory < 0.9) { // 10% chance for potion
+                        } else if (itemCategory < 0.9) {
+                            // 10% chance for potion
                             itemType = 'potions';
-                        } else { // 10% chance for scroll
+                        } else {
+                            // 10% chance for scroll
                             itemType = 'scrolls';
                         }
 
                         const itemNames = Object.keys(items[itemType]);
                         const itemName = itemNames[Math.floor(Math.random() * itemNames.length)];
-                        map[cy][cx].items.push({ name: itemName, type: itemType, ...items[itemType][itemName] });
+                        map[cy][cx].items.push({
+                            name: itemName,
+                            type: itemType,
+                            ...items[itemType][itemName],
+                        });
                         placedChest = true;
                     }
                 }
             }
 
             // Place traps
-            const numTraps = Math.floor(this.width * this.height / 50);
+            const numTraps = Math.floor((this.width * this.height) / 50);
             for (let i = 0; i < numTraps; i++) {
                 let placedTrap = false;
                 let attempts = 0;
@@ -92,7 +128,8 @@ class MapGenerator {
                     const ty = Math.floor(Math.random() * this.height);
                     if (map[ty][tx].walkable && map[ty][tx].char === '.') {
                         const trapTypeKeys = Object.keys(trapTypes);
-                        const trapType = trapTypeKeys[Math.floor(Math.random() * trapTypeKeys.length)];
+                        const trapType =
+                            trapTypeKeys[Math.floor(Math.random() * trapTypeKeys.length)];
                         map[ty][tx].trap = { ...trapTypes[trapType], revealed: false };
                         placedTrap = true;
                     }
@@ -100,7 +137,7 @@ class MapGenerator {
             }
 
             // Place monsters
-            const numMonsters = Math.floor(this.width * this.height / 100);
+            const numMonsters = Math.floor((this.width * this.height) / 100);
             for (let i = 0; i < numMonsters; i++) {
                 let placedMonster = false;
                 let attempts = 0;
@@ -110,7 +147,8 @@ class MapGenerator {
                     const my = Math.floor(Math.random() * this.height);
                     if (map[my][mx].walkable && (mx !== player.x || my !== player.y)) {
                         const monsterTypeKeys = Object.keys(monsterTypes);
-                        const monsterType = monsterTypeKeys[Math.floor(Math.random() * monsterTypeKeys.length)];
+                        const monsterType =
+                            monsterTypeKeys[Math.floor(Math.random() * monsterTypeKeys.length)];
                         const monsterData = monsterTypes[monsterType];
                         const monster = new Monster(monsterData, mx, my);
                         monsters.push(monster);
@@ -127,7 +165,7 @@ class MapGenerator {
             attempts++;
             const sx = Math.floor(Math.random() * this.width);
             const sy = Math.floor(Math.random() * this.height);
-            if (map[sy][sx].walkable && map[sy][sx].char !== '~' && !map[sy][sx].trap) {
+            if (map[sy][sx].walkable && !map[sy][sx].trap && !map[sy][sx].terrain) {
                 map[sy][sx].char = '>'; // Down stair
                 placedDownStairs = true;
             }
@@ -153,7 +191,12 @@ class MapGenerator {
                 attempts++;
                 const sx = Math.floor(Math.random() * this.width);
                 const sy = Math.floor(Math.random() * this.height);
-                if (map[sy][sx].walkable && map[sy][sx].char !== '~' && !map[sy][sx].trap && map[sy][sx].char !== '>') {
+                if (
+                    map[sy][sx].walkable &&
+                    !map[sy][sx].trap &&
+                    map[sy][sx].char !== '>' &&
+                    !map[sy][sx].terrain
+                ) {
                     map[sy][sx].char = '<'; // Up stair
                     placedUpStairs = true;
                 }
@@ -168,7 +211,14 @@ class MapGenerator {
             const px = Math.floor(Math.random() * this.width);
             const py = Math.floor(Math.random() * this.height);
             const tile = map[py][px];
-            if (tile.walkable && tile.char !== '>' && tile.char !== '<' && tile.char !== '~' && !tile.trap && !monsters.some(m => m.x === px && m.y === py)) {
+            if (
+                tile.walkable &&
+                tile.char !== '>' &&
+                tile.char !== '<' &&
+                tile.char !== '~' &&
+                !tile.trap &&
+                !monsters.some((m) => m.x === px && m.y === py)
+            ) {
                 player.x = px;
                 player.y = py;
                 placed = true;
@@ -190,6 +240,84 @@ class MapGenerator {
         }
 
         return { map, monsters, corpses };
+    }
+
+    placeTerrain(map) {
+        const terrainKeys = Object.keys(terrainTypes);
+
+        // Place fountains (healing)
+        const numFountains = Math.floor(Math.random() * 2) + 1;
+        for (let i = 0; i < numFountains; i++) {
+            this.placeSpecificTerrain(map, 'fountain');
+        }
+
+        // Place altars
+        const numAltars = Math.floor(Math.random() * 2) + 1;
+        for (let i = 0; i < numAltars; i++) {
+            this.placeSpecificTerrain(map, 'altar');
+        }
+
+        // Place doors
+        const numDoors = Math.floor(Math.random() * 4) + 2;
+        for (let i = 0; i < numDoors; i++) {
+            this.placeSpecificTerrain(map, 'door');
+        }
+
+        // Place rubble
+        const numRubble = Math.floor((this.width * this.height) / 40);
+        for (let i = 0; i < numRubble; i++) {
+            this.placeSpecificTerrain(map, 'rubble');
+        }
+
+        // Place water pools
+        const numWater = Math.floor(Math.random() * 3) + 1;
+        for (let i = 0; i < numWater; i++) {
+            this.placeSpecificTerrain(map, 'water');
+        }
+
+        // Place lava pools
+        if (Math.random() < 0.5) {
+            this.placeSpecificTerrain(map, 'lava');
+        }
+    }
+
+    placeSpecificTerrain(map, terrainType) {
+        const terrain = terrainTypes[terrainType];
+        let attempts = 0;
+        while (attempts < 500) {
+            attempts++;
+            const tx = Math.floor(Math.random() * this.width);
+            const ty = Math.floor(Math.random() * this.height);
+            if (
+                map[ty][tx].walkable &&
+                map[ty][tx].char === '.' &&
+                !map[ty][tx].terrain &&
+                !map[ty][tx].trap
+            ) {
+                map[ty][tx].terrain = { type: terrainType, ...terrain };
+                if (terrainType === 'door') {
+                    map[ty][tx].char = '+';
+                    map[ty][tx].walkable = false;
+                } else if (terrainType === 'openDoor') {
+                    map[ty][tx].char = '/';
+                    map[ty][tx].walkable = true;
+                } else if (terrainType === 'altar') {
+                    map[ty][tx].char = 'A';
+                } else if (terrainType === 'fountain') {
+                    map[ty][tx].char = 'f';
+                } else if (terrainType === 'rubble') {
+                    map[ty][tx].char = ',';
+                } else if (terrainType === 'water') {
+                    map[ty][tx].char = '~';
+                    map[ty][tx].walkable = false;
+                } else if (terrainType === 'lava') {
+                    map[ty][tx].char = '~';
+                    map[ty][tx].walkable = false;
+                }
+                return true;
+            }
+        }
+        return false;
     }
 }
 
